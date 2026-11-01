@@ -9,6 +9,7 @@ Gói hình ảnh và bản xem thử 2.5D được tạo từ concept trong cu�
 - **7 atlas nhân vật, mỗi atlas 8 khung hình**: *chuyển động 2.5D nội suy từ ảnh gốc, chưa phải skeletal rig vẽ tay riêng cho từng khung hình.*
 - **12 vật phẩm**: hoa sen, chuông, hương, bồ đoàn, tràng hạt, đèn, hào quang, banner, v.v.
 - **9 lớp VFX cao cấp**: vòng sáng, trang phục, đài sen, tia sáng, dải ánh vàng, cánh hoa.
+- **21 sprite quà tặng riêng** được tạo bằng phối lớp mỹ thuật GPT, dùng chung engine chuyển động. Các sprite này chưa thay thế cinematic artist-authored từng cảnh.
 - **Mã nguồn preview** trong `live/`: `art-preview.html`, `cinematic-art.js`.
 - **Bộ ảnh kiểm tra bố cục** trong `qa-preview/` cho 24, 36, 64, 100 người và hai cảnh phụ.
 
@@ -35,3 +36,9 @@ Bản demo độc lập: giải nén, trong thư mục gốc chạy `python -m h
 ## Lưu ý mỹ thuật
 
 Các ảnh mẫu nhân vật và lớp áo cao cấp được sinh từ GPT rồi cắt/tối ưu bằng code. Một số asset nền trong suốt có phần phát sáng; phiên bản WebP vẫn giữ alpha. Do nguồn ảnh gốc không phải file nhiều layer, không thể suy ra bộ animation 3D/skeletal hoàn chỉnh chỉ bằng tách sprite.
+## Chứng cứ QA đợt đóng gói
+
+- Asset ZIP: 60 WebP, gồm 3 cảnh, 8 sprite nhân vật, 7 atlas 8 khung, 12 vật phẩm, 9 lớp VFX và 21 sprite quà.
+- Kiểm tra offline Pillow và JS: **129/129 PASS** (độ phân giải cảnh, alpha, atlas, tồn tại file, video minh họa).
+- Video 17 giây xuất từ bộ art bằng trình dựng ảnh, **không phải video chụp trực tiếp từ overlay/OBS**.
+- Bộ ảnh raster trong ZIP cần đưa vào repository trước khi chạy `npm run test:art` và nghiệm thu Chromium/OBS thực tế.
