@@ -78,6 +78,14 @@ button.red{background:var(--red);border-color:#b84a33}
       <button data-gift="Chuông vàng" data-dia="199">Chuông · 199</button>
     </div>
     <p class="hint">Gõ <b>nam · nữ · sư · ni · tiểu · bà · cao tăng</b> làm bình luận để đổi hình.</p>
+    <h2>Thử quà cao cấp (giá trị mô phỏng)</h2>
+    <div class="row">
+      <button data-premium="500" data-giftname="Money Gun">500 xu · High</button>
+      <button data-premium="1000" data-giftname="Galaxy">1.000 xu · VIP</button>
+      <button data-premium="3000" data-giftname="Meteor Shower">3.000 xu · Elite</button>
+      <button data-premium="10000" data-giftname="Interstellar">10.000 xu · Legend</button>
+    </div>
+    <p class="hint">Chỉ là dữ liệu thử, không phát sinh quà TikTok thật. Giá trị và tên quà thực tế tùy TikTok.</p>
     <h2>Đổ người mẫu</h2>
     <div class="row"><button data-fill="15">15</button><button data-fill="36">36</button><button data-fill="64">64</button><button data-fill="100">100</button></div>
     <button class="red" id="btnClear">Làm trống toàn bộ bồ đoàn</button>
@@ -170,6 +178,7 @@ $('btnDisconnect').onclick = () => send('disconnect');
 $('btnOverlay').onclick = () => window.open('/live/overlay.html', 'overlay916', 'width=540,height=960');
 $('btnChat').onclick = () => send('chat', { name: $('simName').value, text: $('simText').value });
 document.querySelectorAll('[data-gift]').forEach(b => b.onclick = () => send('gift', { name: $('simName').value, gift: b.dataset.gift, diamonds: +b.dataset.dia, count: 1 }));
+document.querySelectorAll('[data-premium]').forEach(b => b.onclick = () => send('gift', { name: $('simName').value, gift: b.dataset.giftname, diamonds: +b.dataset.premium, count: 1 }));
 document.querySelectorAll('[data-fill]').forEach(b => b.onclick = () => send('fill', { n: +b.dataset.fill }));
 $('btnClear').onclick = () => send('clear');
 $('btnBots').onclick = () => send('bots', { on: $('btnBots').textContent.includes('Bật'), n: +$('botN').value, pace: $('botPace').value });
