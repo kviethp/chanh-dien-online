@@ -129,7 +129,8 @@ function layout(c){
   seats.sort((a,b)=> (b.r-a.r) || (Math.abs(a.x-540)-Math.abs(b.x-540)));
   reseat();
 }
-const visitors = new Map();  // id -> visitor
+const visitors = new Map();
+let demoOnAir=false;  // id -> visitor
 const cinematicQ=[]; let cinematicUntil=0;
 const MAX_CINEMATIC_QUEUE=8;
 let order = [];               // ids in seating order
@@ -152,9 +153,9 @@ function removeVisitor(id){ visitors.delete(id); reseat(); }
 
 /* ======================= HUD ======================= */
 let startedAt = Date.now();
-function updateCount(){ document.getElementById('count').textContent = `${visitors.size}/${cap}`; }
+function updateCount(){ const real=[...visitors.values()].filter(v=>!v.demo).length, simulated=visitors.size-real;document.getElementById('count').textContent = `${real} thật · ${simulated} MÔ PHỎNG / ${cap}`; }
 function renderMerit(){
-  const top = [...visitors.values()].filter(v=>v.coins>0).sort((a,b)=>b.coins-a.coins).slice(0,5);
+  const top = [...visitors.values()].filter(v=>!v.demo&&v.coins>0).sort((a,b)=>b.coins-a.coins).slice(0,5);
   const ol = document.getElementById('meritList'); ol.innerHTML='';
   if (!top.length){ ol.innerHTML='<li class="empty">Chưa có</li>'; return; }
   top.forEach((v,i)=>{ const li=document.createElement('li'); const a=document.createElement('span'); a.textContent=`${i+1}. ${v.name}`; const b=document.createElement('span'); b.textContent=v.coins; li.append(a,b); ol.append(li); });
@@ -173,10 +174,10 @@ function showGift(m){
   }
   const duration=m.event?.durationMs||3600;
   cinematicUntil=now+duration;
-  document.getElementById('giftWho').textContent = '@'+m.name;
+  document.getElementById('giftWho').textContent = (m.demo?'[MÔ PHỎNG] ':'@')+m.name;
   const giftEl=document.getElementById('gift'); giftEl.classList.toggle('high',(m.event?.level||0)>=2);giftEl.classList.toggle('special',(m.event?.level||0)>=4);
   document.getElementById('giftPrestige').textContent=m.event?.title||'';
-  document.getElementById('giftWhat').textContent = `thành tâm dâng ${m.giftName}${m.count>1?' ×'+m.count:''} · điểm tri ân ${m.total}`;
+  document.getElementById('giftWhat').textContent = `${m.demo?'QUÀ ẢO · ':''}thành tâm dâng ${m.giftName}${m.count>1?' ×'+m.count:''} · điểm tri ân ${m.total}`;
   document.getElementById('giftPray').textContent = '“' + m.prayer + '”';
   document.getElementById('chant').classList.remove('show');
   const el=document.getElementById('gift'); el.classList.add('show'); clearTimeout(giftHide); giftHide=setTimeout(()=>{el.classList.remove('show');cinematicUntil=0;if(cinematicQ.length) showGift(cinematicQ.shift());},duration);
@@ -248,14 +249,15 @@ function connect(){
     const m=JSON.parse(e.data);
     switch(m.t){
       case 'state':
-        Object.assign(settings,m.settings); applySettings(); startedAt=m.startedAt;
+        Object.assign(settings,m.settings); applySettings(); startedAt=m.startedAt;demoOnAir=!!m.demoOnAir;
         visitors.clear(); order=[]; layout(m.cap); for (const p of m.viewers) addVisitor(p,true); updateCount(); renderMerit(); break;
+      case 'demoMode': demoOnAir=!!m.enabled;break;
       case 'settings': Object.assign(settings,m.settings); applySettings(); if (m.cap!==cap){ layout(m.cap); updateCount(); } break;
       case 'join': if (m.cap!==cap) layout(m.cap); addVisitor(m.v, m.v.demo && visitors.size>8); updateCount(); break;
       case 'leave': removeVisitor(m.id); updateCount(); renderMerit(); break;
       case 'skin': { const v=visitors.get(m.id); if(v){ v.skin=m.skin; v.glow=.8; if(v.state!=='sit'){ v.state='sit'; v.frame=7; } } } break;
       case 'chat': { const v=visitors.get(m.id); if(v){ v.bubble={text:m.text, until:performance.now()+6000}; v.bow=.6; } } break;
-      case 'gift': { const v=visitors.get(m.id); if(v){ v.coins=m.total; if(m.reward) v.reward=m.reward; giftFx(v,m.tier,m.event); premium.giftReceived(v,m.event); } renderMerit(); showGift(m); } break;
+      case 'gift': { const v=visitors.get(m.id); if(v){ if(m.demo)v.demoCoins=m.total; else v.coins=m.total; if(m.reward) v.reward=m.reward; giftFx(v,m.tier,m.event); premium.giftReceived(v,m.event); } renderMerit(); showGift(m); } break;
       case 'like': { const v=visitors.get(m.id); if(v) hearts(v,m.n); } break;
       case 'tts': queueTTS(m.url); break;
       case 'chant': showChant(m.text); bell(); break;
@@ -357,10 +359,11 @@ function frame(now){
     ctx.restore();
     premium.drawOver(ctx,v,ws,t,pose,nowMs);
     const ty=v.y-topY-14*ws/.4;
-    tag('@'+v.name, v.x, ty, ws, liveReward||v.skin==='master'||v.coins>=99?'gold':'', avatar(v.avatar), v.state==='sit' ? v.seat?.gap : 0);
+    tag((v.demo?'[MẪU] ':'@')+v.name, v.x, ty, ws, liveReward||v.skin==='master'||v.coins>=99?'gold':'', avatar(v.avatar), v.state==='sit' ? v.seat?.gap : 0);
     if (v.bubble && now<v.bubble.until) bubbles.push([v.bubble.text, v.x, ty-Math.max(18,30*ws/.4), ws]); else v.bubble=null;
   }
   for (const b of bubbles) bubble(...b);
+  if([...visitors.values()].some(v=>v.demo)){ctx.save();ctx.fillStyle='rgba(35,12,10,.88)';ctx.fillRect(0,1883,1080,37);ctx.font='bold 24px sans-serif';ctx.fillStyle='#ffe7ad';ctx.textAlign='center';ctx.fillText('CÓ NHÂN VẬT MÔ PHỎNG · QUÀ ẢO KHÔNG PHẢI GIAO DỊCH TIKTOK',540,1909);ctx.restore();}
   // gift icons rising, petals / hearts
   for (let i=fx.length-1;i>=0;i--){ const f=fx[i]; f.t+=dt; const k=f.t/f.life; if(k>=1){ fx.splice(i,1); continue; } const pop=1-Math.pow(1-Math.min(1,f.t*4),3);
     ctx.save(); ctx.globalAlpha=k<.75?1:(1-k)/.25; sprite(A[f.kind],f.x,f.y-k*170,f.scale*(.6+.4*pop)); ctx.restore(); }
