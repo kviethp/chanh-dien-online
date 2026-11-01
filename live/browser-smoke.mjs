@@ -82,8 +82,32 @@ try{
  await until(()=>ui.locator('#autoGiftHistory').innerText().then(t=>t.includes('Interstellar')),'legend mock gift');
  await live.waitForTimeout(1000);
  await live.screenshot({path:resolve(out,'premium-gift.png')});
+
+ // Stress case: 100 simulated occupants and five premium gifts in a burst.
+ // Browser CI is reference-only; OBS hardware acceptance remains a separate gate.
+ await ui.locator('#demoReset').click();
+ await until(()=>ui.locator('#cnt').innerText().then(t=>t.includes('0 mẫu')),'reset before stress');
+ await ui.locator('#seatMode').selectOption('100');
+ await ui.locator('[data-fill="100"]').click();
+ await until(()=>ui.locator('#cnt').innerText().then(t=>t.includes('100 mẫu')),'100-player stress setup',22000);
+ await live.waitForTimeout(2500);
+ await ui.locator('#demoGift').selectOption('Galaxy');
+ for(let i=0;i<5;i++) {
+   await ui.locator('#demoTarget').selectOption({index:i});
+   await ui.locator('#demoSendGift').click();
+ }
+ await live.bringToFront();
+ const ciApproxFps100WithGifts=await live.evaluate(()=>new Promise(resolve=>{
+   let start=null,count=0;
+   function next(t){if(start===null)start=t;count++;
+     if(t-start>=3500)resolve(Math.round((count-1)*1000/(t-start)*10)/10);
+     else requestAnimationFrame(next);
+   }requestAnimationFrame(next);
+ }));
+ await live.screenshot({path:resolve(out,'stress_100_5_gifts.png')});
+
  if(errs.length)throw Error('Page errors: '+errs.join('; '));
- const report={passed:true,captures,errors:errs,assetHealth,ciApproxFps100,video:'overlay-demo.webm'};writeFileSync(resolve(out,'report.json'),JSON.stringify(report,null,2));
+ const report={passed:true,captures,errors:errs,assetHealth,ciApproxFps100,ciApproxFps100WithGifts,video:'overlay-demo.webm'};writeFileSync(resolve(out,'report.json'),JSON.stringify(report,null,2));
  console.log('BROWSER_SMOKE_PASS',JSON.stringify(report));
 }catch(e){
  writeFileSync(resolve(out,'error.txt'),String(e.stack||e)+'\n'+logs);
