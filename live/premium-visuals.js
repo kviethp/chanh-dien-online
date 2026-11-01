@@ -110,15 +110,15 @@
   }
   const particles=[], shockwaves=[];
   // Hard caps bound canvas animation memory during gift streaks.
-  const MAX_PARTICLES=310,MAX_WAVES=12;
+  const MAX_PARTICLES=180,MAX_WAVES=6;
   const rand=(a,b)=>a+Math.random()*(b-a);
-  function giftReceived(v,event, now) {
+  function giftReceived(v,event, now, crowdSize=0) {
     if (!event) return;
     const ts=now===undefined ? performance.now() : now;
     const incoming={start:ts,duration:Math.max(1200,event.durationMs||2200),action:event.action||'bow',level:event.level||0,prop:event.prop||'none'};
     // Keep the strongest pending cinematic while a current gesture finishes.
     if(!v.pendingCeremony || incoming.level>=v.pendingCeremony.level)v.pendingCeremony=incoming;
-    const count=Math.min(12+(event.level||0)*8,56);
+    const count=crowdSize>=64?Math.min(8,(event.level||0)*2+2):Math.min(12+(event.level||0)*8,56);
     const originX=v.x||540,originY=(v.y||1700)-80*(v.seat?.scale||.4);
     for(let i=0;i<count;i++) {
       const angle=rand(-Math.PI,-.08),speed=rand(35,160);
@@ -226,7 +226,7 @@
     if(pose?.action==='incense' && appearing)
       drawImage(ctx,'prop_incense',v.x+scale*65,v.y-115*scale,scale*80,scale*108,appearing);
   }
-  function drawEffects(ctx,dt) {
+  function drawEffects(ctx,dt,crowdSize=0) {
     const d=Math.min(dt,.05);
     for(let i=shockwaves.length-1;i>=0;i--) {
       const w=shockwaves[i];w.t+=d;
@@ -235,7 +235,7 @@
       ctx.save();ctx.globalCompositeOperation='lighter';
       ctx.strokeStyle=w.level>=4?'#fff3c2':'#f7cb6e';
       ctx.lineWidth=(w.level>=4?5:3)*(1-p)+.5;ctx.globalAlpha=opacity;
-      ctx.shadowColor='#ffd27d';ctx.shadowBlur=16;
+      if(crowdSize<64){ctx.shadowColor='#ffd27d';ctx.shadowBlur=16;}
       ctx.beginPath();ctx.ellipse(w.x,w.y,r,r*.24,0,0,Math.PI*2);ctx.stroke();
       if(w.level>=4){ctx.beginPath();ctx.arc(w.x,w.y-94,r*.7,0,Math.PI*2);ctx.stroke();}
       ctx.restore();
@@ -246,7 +246,7 @@
       p.x+=p.vx*d;p.y+=p.vy*d;p.vx*=.995;p.vy+=27*d;p.rotation+=p.spin*d;
       ctx.save();ctx.globalAlpha=Math.min(1,(p.life-p.t)*1.2);ctx.translate(p.x,p.y);ctx.rotate(p.rotation);
       if(p.type==='star'){
-        ctx.globalCompositeOperation='lighter';ctx.fillStyle='#ffe19f';ctx.shadowColor='#fff5b8';ctx.shadowBlur=15;
+        ctx.globalCompositeOperation='lighter';ctx.fillStyle='#ffe19f';if(crowdSize<64){ctx.shadowColor='#fff5b8';ctx.shadowBlur=15;}
         ctx.beginPath();for(let n=0;n<8;n++){const angle=n*Math.PI/4,rad=n%2?2.5:8;const xx=Math.cos(angle)*rad,yy=Math.sin(angle)*rad;if(n===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);}ctx.closePath();ctx.fill();
       } else {
         const im=usable('petal_pink');
