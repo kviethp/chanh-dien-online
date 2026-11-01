@@ -56,7 +56,7 @@
     const h=315*k,w=h*240/340;
     // Caller has already translated to seat/world location.
     ctx.save();
-    ctx.globalAlpha*=v.fade===undefined?1:v.fade;
+    // Fade is already applied by the caller; avoid squaring opacity per frame.
     if(v.flip)ctx.scale(-1,1);
     if(isSit && v.reward?.level>=2 && v.reward.auraUntil>Date.now()){
       const aura=v.reward.level>=4?asset.fx.legend_aura:asset.prop.aura;
@@ -100,5 +100,5 @@
     return {scene:SCENES.filter(k=>ready(asset.scene[k])),actors:SKINS.filter(k=>ready(asset.skin[k])),
       props:PROPS.filter(k=>ready(asset.prop[k])),effects:FX.filter(k=>ready(asset.fx[k]))};
   }
-  root.V3Art=Object.freeze({choose,drawBackground,drawActor,onGift,drawGift,health,ready:()=>ready(asset.scene.hall),scenes:SCENES});
+  root.V3Art=Object.freeze({choose,drawBackground,drawActor,onGift,drawGift,health,ready:()=>ready(asset.scene.hall),scene:()=>chosen,scenes:SCENES});
 })(window);
