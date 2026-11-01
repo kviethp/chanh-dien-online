@@ -23,6 +23,14 @@ try{
  await until(()=>ui.locator('#srv').innerText().then(t=>t.includes('đang chạy')),'control connected');
 
  // The operator unlocks sound before broadcasting. Do not screenshot the setup button.
+ const assetHealth=await live.evaluate(async()=>{
+   await Promise.all(Object.values(window.StageScene.images).map(im=>im.decode().catch(()=>{})));
+   await Promise.all(Object.values(window.PremiumVisuals.assets).map(im=>im.decode().catch(()=>{})));
+   const errors=[...Object.entries(window.StageScene.images),...Object.entries(window.PremiumVisuals.assets)]
+     .filter(([name,im])=>!im.complete||im.naturalWidth===0).map(([name])=>name);
+   return {errors,stageLayers:Object.keys(window.StageScene.images).length,premiumLayers:Object.keys(window.PremiumVisuals.assets).length};
+ });
+ if(assetHealth.errors.length)throw Error('Missing visual assets: '+assetHealth.errors.join(', '));
  await live.locator('#unmute').click();
  await until(()=>live.locator('#unmute').count().then(x=>x===0),'audio activated');
  const captures=[];
@@ -75,7 +83,7 @@ try{
  await live.waitForTimeout(1000);
  await live.screenshot({path:resolve(out,'premium-gift.png')});
  if(errs.length)throw Error('Page errors: '+errs.join('; '));
- const report={passed:true,captures,errors:errs,ciApproxFps100,video:'overlay-demo.webm'};writeFileSync(resolve(out,'report.json'),JSON.stringify(report,null,2));
+ const report={passed:true,captures,errors:errs,assetHealth,ciApproxFps100,video:'overlay-demo.webm'};writeFileSync(resolve(out,'report.json'),JSON.stringify(report,null,2));
  console.log('BROWSER_SMOKE_PASS',JSON.stringify(report));
 }catch(e){
  writeFileSync(resolve(out,'error.txt'),String(e.stack||e)+'\n'+logs);
