@@ -30,7 +30,7 @@ const settings = {
   music: true, mo: true, moBpm: 52,
   autoChant: true, chantEveryMin: 3,
   seatMode: 'auto',                  // auto | 24 | 36 | 64 | 100
-  joinOnEnter: false,                // also seat viewers who only enter the room
+  joinOnEnter: true,                 // seat public MEMBER join events when TikTok emits them
   gifts: { readAll: true, minDiamonds: 1 },
 };
 const viewers = new Map();           // id -> { id, name, skin, avatar, coins, joinedAt, lastAt, lastText, lastTextAt, demo }
@@ -225,7 +225,16 @@ const SETTING_RULES = {
   seatMode: v => ['auto', '24', '36', '64', '100'].includes(String(v)) ? String(v) : 'auto',
 };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(+v || 0)));
-function applySettings(o){ for (const [k, fn] of Object.entries(SETTING_RULES)) if (k in o) settings[k] = fn(o[k]); }
+function applySettings(o){
+  for(const [k,fn] of Object.entries(SETTING_RULES))if(k in o)settings[k]=fn(o[k]);
+  // Keeping 100 avatars after switching to 24 seats leaves 76 invisible.
+  const max=seatLimit();
+  if(viewers.size>max){
+    const evict=[...viewers.values()].sort((a,b)=>a.coins-b.coins||a.lastAt-b.lastAt).slice(0,viewers.size-max);
+    for(const v of evict){viewers.delete(v.id);broadcast({t:'leave',id:v.id});}
+    addLog('Đã điều chỉnh về '+viewers.size+' chỗ ngồi theo cấu hình mới');
+  }
+}
 
 /* ----------------------------------------------------------------- bots */
 let botTimer = null;
