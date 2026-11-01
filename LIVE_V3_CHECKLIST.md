@@ -84,11 +84,12 @@
 - [x] Tạo 3 bối cảnh 1080×1920 (chánh điện không có ghế cố định, vườn sen, sân hoa đăng), xử lý ảnh WebP
 - [x] Tách riêng 8 ảnh nhân vật, 12 vật phẩm, 9 lớp VFX từ bảng art sinh bằng GPT
 - [x] Tạo 7 spritesheet × 8 frame (nội suy 2D, không được đánh đồng với rig artist-authored)
-- [x] Tạo gói art ZIP có hướng dẫn cài đặt, demo 17 giây, ảnh kiểm tra 24/36/64/100 và 2 cảnh phụ; kiểm tra offline 107/107 mục đạt
+- [x] Tạo gói art ZIP có hướng dẫn cài đặt, demo 17 giây, ảnh kiểm tra 24/36/64/100 và 2 cảnh phụ; kiểm tra offline **129/129** mục đạt
+- [x] Tạo 21 sprite quà WebP riêng từ artwork GPT, kết nối Gift Engine theo key (dùng chung animation engine; chưa phải 21 cinematic artist-authored)
 - [x] Kết nối renderer V3 và fallback vào overlay; thêm Admin chuyển 3 cảnh
 - [x] Viết unit test scene whitelist + fallback và browser test đồng bộ cấu hình Admin/overlay
-- [x] Thêm manifest 39 ảnh WebP dự kiến và lệnh `npm run test:art` để xác minh file sau cài
-- [ ] Đưa 39 file ảnh bitmap từ gói ZIP vào GitHub branch, chạy `npm run test:art` PASS
+- [x] Thêm manifest 60 ảnh WebP dự kiến và lệnh `npm run test:art` để xác minh file sau cài
+- [ ] Đưa 60 file ảnh bitmap từ gói ZIP vào GitHub branch, chạy `npm run test:art` PASS
 - [ ] Chụp ảnh và video Chromium khi bật asset V3 thật trên branch đã cài, kiểm tra không đè HUD/nhân vật
 - [ ] Phê duyệt bộ concept/màu sắc/nhân vật với người phụ trách sản phẩm
 - [ ] Hoàn thiện rig/texture 7 skin và toàn bộ 21 cinematic artist-authored (mở từ phần C/D)
