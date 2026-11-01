@@ -33,10 +33,10 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
 .dot{width:18px;height:18px;border-radius:50%;background:#46d36b;box-shadow:0 0 12px #46d36b}
 /* side cards */
 .card{background:var(--panel);border:2px solid var(--line);border-radius:22px;padding:18px 22px;font-size:25px;line-height:1.4;backdrop-filter:blur(4px)}
-#guide{left:24px;top:630px;width:290px}
+#guide{left:20px;top:630px;width:245px;font-size:22px;padding:13px 15px}
 #guide div+div{border-top:1px solid rgba(226,176,79,.3);margin-top:10px;padding-top:10px}
 #guide b{color:var(--gold2)}
-#merit{right:24px;top:630px;width:290px;text-align:center}
+#merit{right:20px;top:630px;width:245px;text-align:center;font-size:22px;padding:13px 15px}
 #merit h3{margin:0 0 8px;font-family:var(--display);font-size:30px;color:var(--gold2);letter-spacing:.06em}
 #merit ol{margin:0;padding:0;list-style:none;text-align:left;display:grid;gap:6px}
 #merit li{display:flex;justify-content:space-between;gap:10px}
@@ -44,12 +44,12 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
 #merit li span:last-child{color:var(--gold2);font-variant-numeric:tabular-nums}
 #merit .empty{color:var(--muted);text-align:center}
 /* chant banner + gift banner */
-#chant{left:110px;right:110px;top:330px;padding:22px 30px;text-align:center;border-radius:24px;border:2px solid var(--gold);
+#chant{left:195px;right:195px;top:1085px;padding:14px 22px;text-align:center;border-radius:22px;border:2px solid var(--gold);
   background:rgba(40,18,8,.86);opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
 #chant.show{opacity:1;transform:none}
 #chant h4{margin:0 0 8px;font-family:var(--display);color:var(--gold2);font-size:30px;letter-spacing:.1em}
 #chant p{margin:0;font-family:var(--display);font-style:italic;font-size:30px;line-height:1.45}
-#gift{left:70px;right:70px;top:330px;z-index:5;padding:30px 40px;text-align:center;border-radius:28px;border:3px solid var(--gold2);
+#gift{left:125px;right:125px;top:1165px;z-index:5;padding:16px 24px;text-align:center;border-radius:24px;border:3px solid var(--gold2);
   background:radial-gradient(ellipse at 50% 0%,rgba(150,40,20,.95),rgba(50,14,6,.95));box-shadow:0 0 60px rgba(255,190,90,.45);
   opacity:0;transform:scale(.85);transition:opacity .45s,transform .45s cubic-bezier(.2,1.4,.4,1)}
 #gift.show{opacity:1;transform:none}
@@ -58,11 +58,11 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
 #gift .prestige{font-size:26px;color:#ffe2a1;letter-spacing:.08em;margin-top:9px}
 #gift.special{animation:prestigePop 1.4s ease-out}
 @keyframes prestigePop{0%{filter:brightness(2);scale:1.05}100%{filter:brightness(1);scale:1}}
-#gift .who{font-family:var(--display);font-weight:700;font-size:52px;color:var(--gold2)}
-#gift .what{font-size:36px;margin-top:6px}
-#gift .pray{font-family:var(--display);font-style:italic;font-size:32px;color:var(--fg);margin-top:12px;opacity:.95}
+#gift .who{font-family:var(--display);font-weight:700;font-size:42px;color:var(--gold2);overflow-wrap:anywhere;line-height:1.2}
+#gift .what{font-size:27px;margin-top:4px;line-height:1.3}
+#gift .pray{font-family:var(--display);font-style:italic;font-size:24px;color:var(--fg);margin-top:7px;opacity:.95;max-height:64px;overflow:hidden}
 /* enable sound (needed once: browsers block autoplay) */
-#unmute{position:absolute;z-index:9;left:50%;top:1540px;transform:translateX(-50%);font:600 36px var(--body);padding:22px 44px;border-radius:24px;border:3px solid var(--gold2);background:var(--red);color:#fff4dc;cursor:pointer}
+#unmute{position:absolute;z-index:9;left:50%;top:1710px;transform:translateX(-50%);font:600 24px var(--body);padding:10px 19px;border-radius:999px;border:2px solid var(--gold2);background:rgba(92,33,16,.95);color:#fff4dc;cursor:pointer;white-space:nowrap}
 #conn{position:absolute;z-index:4;right:16px;bottom:12px;font-size:20px;color:var(--muted);opacity:.6}
 @media (prefers-reduced-motion:reduce){#chant,#gift{transition:none}}
 </style>
@@ -89,6 +89,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
 
 <script src="/live/premium-visuals.js"></script>
 <script src="/live/stage-scene.js"></script>
+<script src="/live/gift-cinematics.js"></script>
 <script>
 /* ======================= stage fit ======================= */
 const stage = document.getElementById('stage');
@@ -103,6 +104,8 @@ const IMG = { hall:'/assets/hall.jpg', monk:'/assets/c_monk.png', nun:'/assets/c
 for (const [k,src] of Object.entries(IMG)){ const im=new Image(); im.src=src; A[k]=im; }
 const ANIM = { man:{fw:212,fh:300,seatH:210}, woman:{fw:212,fh:300,seatH:220}, granny:{fw:195,fh:300,seatH:222} };
 const premium = window.PremiumVisuals;
+const cinematicFX=window.GiftCinematics;
+const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const stageScene=window.StageScene;
 const entrySkin = skin => hasAnim(skin) ? skin : (skin==='nun'||skin==='child' ? 'woman' : 'man');
 const hasAnim = k => ANIM[k] && A['anim_'+k]?.naturalWidth > 0;
@@ -118,6 +121,7 @@ function layout(c){cap=c;seats=stageScene.layout(c);reseat();}
 const visitors = new Map();
 let demoOnAir=false;  // id -> visitor
 const cinematicQ=[]; let cinematicUntil=0;
+let resumeChantAfterGift=false;
 const MAX_CINEMATIC_QUEUE=8;
 let order = [];               // ids in seating order
 function reseat(){
@@ -136,6 +140,23 @@ function addVisitor(p, instant){
   if (instant || !v.seat){ v.state='sit'; v.frame=7; v.x=v.tx=v.seat?.x||540; v.y=v.ty=v.seat?.y||1500; v.fade = instant?1:0; }
 }
 function removeVisitor(id){ visitors.delete(id); reseat(); }
+// Gift events arriving while the devotee walks in are deferred until seated.
+// An unbounded event queue would otherwise flood the stage after a gift streak.
+function deliverGift(v,m){
+  giftFx(v,m.tier,m.event);
+  premium.giftReceived(v,m.event,undefined,visitors.size);
+  cinematicFX.trigger(v,m.event);
+  showGift(m);
+}
+function queueGift(v,m){
+  if(!v)return;
+  if(v.state==='sit'){deliverGift(v,m);return;}
+  const pending=v.pendingGiftMessages||(v.pendingGiftMessages=[]);
+  const repeat=pending.findLast(x=>x.giftName===m.giftName);
+  if(repeat){repeat.count+=m.count;repeat.coins+=m.coins;repeat.total=m.total;repeat.event=m.event;return;}
+  if(pending.length>=3)pending.shift();
+  pending.push({...m});
+}
 
 /* ======================= HUD ======================= */
 let startedAt = Date.now();
@@ -151,7 +172,7 @@ let giftHide=null;
 function showGift(m){
   const now=Date.now();
   if(now < cinematicUntil){
-    // Never allow a low-cost streak to cover an active premium dedication.
+    // Small gifts retain their individual visual effects; do not replace current cinematic.
     if((m.event?.level||0)<2)return;
     const repeat=cinematicQ.find(e=>e.id===m.id && e.giftName===m.giftName);
     if(repeat){repeat.count+=m.count;repeat.coins+=m.coins;repeat.total=m.total;return;}
@@ -165,8 +186,9 @@ function showGift(m){
   document.getElementById('giftPrestige').textContent=m.event?.title||'';
   document.getElementById('giftWhat').textContent = `${m.demo?'QUÀ ẢO · ':''}thành tâm dâng ${m.giftName}${m.count>1?' ×'+m.count:''} · điểm tri ân ${m.total}`;
   document.getElementById('giftPray').textContent = '“' + m.prayer + '”';
+  if(document.getElementById('chant').classList.contains('show'))resumeChantAfterGift=true;
   document.getElementById('chant').classList.remove('show');
-  const el=document.getElementById('gift'); el.classList.add('show'); clearTimeout(giftHide); giftHide=setTimeout(()=>{el.classList.remove('show');cinematicUntil=0;if(cinematicQ.length) showGift(cinematicQ.shift());},duration);
+  const el=document.getElementById('gift'); el.classList.add('show'); clearTimeout(giftHide); giftHide=setTimeout(()=>{el.classList.remove('show');cinematicUntil=0;if(cinematicQ.length)showGift(cinematicQ.shift());else if(resumeChantAfterGift){resumeChantAfterGift=false;document.getElementById('chant').classList.add('show');}},duration);
 }
 let chantHide=null;
 function showChant(text){ document.getElementById('chantText').textContent=text; const el=document.getElementById('chant'); el.classList.add('show'); clearTimeout(chantHide); chantHide=setTimeout(()=>el.classList.remove('show'), 14000); }
@@ -180,7 +202,7 @@ function startAudio(){
   master = AC.createGain(); master.gain.value=.9; master.connect(AC.destination);
   musicGain = AC.createGain(); musicGain.gain.value=settings.music?.5:0; musicGain.connect(master);
   sfx = AC.createGain(); sfx.gain.value=1; sfx.connect(master);
-  nextTrack(); scheduleMo(); bell();
+  nextTrack(); scheduleMo(); bell(); playTTS();
 }
 function nextTrack(){
   if (musicEl){ musicEl.pause(); }
@@ -203,12 +225,12 @@ function mo(){
 let moTimer=null; function scheduleMo(){ clearInterval(moTimer); if (AC && settings.mo) moTimer=setInterval(mo, 60000/Math.max(20,settings.moBpm||52)); }
 // server-made voice lines play one after another
 const ttsQ=[]; let ttsPlaying=false;
-function queueTTS(url, onStart){ ttsQ.push({url,onStart}); playTTS(); }
+function queueTTS(url, onStart){ if(ttsQ.length>=20) ttsQ.shift(); ttsQ.push({url,onStart}); playTTS(); }
 function playTTS(){
   if (ttsPlaying || !ttsQ.length || !AC) return; ttsPlaying=true;
   const {url,onStart}=ttsQ.shift(); const el=new Audio(url); const src=AC.createMediaElementSource(el); const g=AC.createGain(); g.gain.value=1.25; src.connect(g); g.connect(master);
   el.onplay=()=>{ duck(true); onStart&&onStart(); }; el.onended=el.onerror=()=>{ duck(false); ttsPlaying=false; setTimeout(playTTS,350); };
-  el.play().catch(()=>{ ttsPlaying=false; });
+  el.play().catch(()=>{ duck(false); ttsPlaying=false; setTimeout(playTTS,350); });
 }
 
 /* ======================= effects ======================= */
@@ -243,7 +265,7 @@ function connect(){
       case 'leave': removeVisitor(m.id); updateCount(); renderMerit(); break;
       case 'skin': { const v=visitors.get(m.id); if(v){ v.skin=m.skin; v.glow=.8; if(v.state!=='sit'){ v.state='sit'; v.frame=7; } } } break;
       case 'chat': { const v=visitors.get(m.id); if(v){ v.bubble={text:m.text, until:performance.now()+6000}; v.bow=.6; } } break;
-      case 'gift': { const v=visitors.get(m.id); if(v){ if(m.demo)v.demoCoins=m.total; else v.coins=m.total; if(m.reward) v.reward=m.reward; giftFx(v,m.tier,m.event); premium.giftReceived(v,m.event); } renderMerit(); showGift(m); } break;
+      case 'gift': { const v=visitors.get(m.id); if(v){ if(m.demo)v.demoCoins=m.total; else v.coins=m.total; if(m.reward)v.reward=m.reward; queueGift(v,m); }else showGift(m); renderMerit(); } break;
       case 'like': { const v=visitors.get(m.id); if(v) hearts(v,m.n); } break;
       case 'tts': queueTTS(m.url); break;
       case 'chant': showChant(m.text); bell(); break;
@@ -263,15 +285,45 @@ connect();
 const ctx=document.getElementById('c').getContext('2d');
 function sprite(im,x,y,s,ay=1){ const iw=im?.naturalWidth||im?.width, ih=im?.naturalHeight||im?.height; if(!iw||!ih)return; const w=iw*s,h=ih*s; ctx.drawImage(im,x-w/2,y-h*ay,w,h); }
 function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+// Render each unique name plaque once; 100 Canvas text/path operations per frame
+// are especially costly on software-only renderers.
+const labelCache=new Map(),MAX_LABEL_CACHE=320;
 function tag(text,x,y,s,style,av,maxW){
-  const fs=Math.max(15,Math.round(30*s/.4)); ctx.font=`600 ${fs}px "Be Vietnam Pro",system-ui,sans-serif`;
-  const pad=fs*.5; let aw = av?fs*1.15:0;
-  if (maxW){ if (aw && maxW < fs*5) aw=0, av=null; let t=text; while (t.length>2 && ctx.measureText(t).width+pad*2+aw > maxW) t=t.slice(0,-1); if (t!==text) text=t.trimEnd()+'…'; }
-  const w=ctx.measureText(text).width+pad*2+aw, h=fs*1.5;
-  ctx.fillStyle = style==='gold'?'rgba(70,30,8,.92)':'rgba(18,9,5,.72)'; rr(x-w/2,y-h/2,w,h,h/2); ctx.fill();
-  ctx.lineWidth = style==='gold'?3:1.5; ctx.strokeStyle = style==='gold'?'#e2b04f':'rgba(226,176,79,.55)'; ctx.stroke();
-  if (av){ ctx.save(); ctx.beginPath(); ctx.arc(x-w/2+pad*.55+aw/2, y, fs*.5, 0, 6.29); ctx.clip(); ctx.drawImage(av, x-w/2+pad*.55+aw/2-fs*.5, y-fs*.5, fs, fs); ctx.restore(); }
-  ctx.fillStyle = style==='gold'?'#ffd98a':'#f6e9cf'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text, x+aw/2, y+1);
+  const fs=Math.max(10,Math.min(Math.round(30*s/.4),maxW?Math.floor(maxW/5.8):42));
+  const font='600 '+fs+'px "Be Vietnam Pro",system-ui,sans-serif';
+  const widthLimit=maxW?Math.floor(maxW):0;
+  const key=av?null:fs+'|'+style+'|'+widthLimit+'|'+text;
+  let item=key?labelCache.get(key):null;
+  if(!item){
+    const measure=document.createElement('canvas').getContext('2d');
+    measure.font=font;
+    const pad=fs*.5;
+    let aw=av?fs*1.15:0;
+    if(widthLimit&&aw&&widthLimit<fs*5){aw=0;av=null;}
+    let label=text;
+    if(widthLimit){
+      while(label.length>2&&measure.measureText(label).width+pad*2+aw>widthLimit)label=label.slice(0,-1);
+      if(label!==text)label=label.trimEnd()+'…';
+    }
+    const w=Math.max(20,Math.ceil(measure.measureText(label).width+pad*2+aw)),h=Math.ceil(fs*1.5);
+    const pic=document.createElement('canvas');
+    pic.width=w+8;pic.height=h+8;
+    const c=pic.getContext('2d'),left=4,top=4,r=h/2;
+    c.fillStyle=style==='gold'?'rgba(70,30,8,.92)':'rgba(18,9,5,.72)';
+    c.beginPath();c.moveTo(left+r,top);c.arcTo(left+w,top,left+w,top+h,r);
+    c.arcTo(left+w,top+h,left,top+h,r);c.arcTo(left,top+h,left,top,r);
+    c.arcTo(left,top,left+w,top,r);c.closePath();c.fill();
+    c.lineWidth=style==='gold'?3:1.5;
+    c.strokeStyle=style==='gold'?'#e2b04f':'rgba(226,176,79,.55)';c.stroke();
+    if(av){c.save();c.beginPath();c.arc(4+pad*.55+aw/2,4+h/2,fs*.5,0,6.29);c.clip();
+      c.drawImage(av,4+pad*.55+aw/2-fs*.5,4+h/2-fs*.5,fs,fs);c.restore();}
+    c.fillStyle=style==='gold'?'#ffd98a':'#f6e9cf';
+    c.font=font;c.textAlign='center';c.textBaseline='middle';
+    c.fillText(label,4+w/2+aw/2,4+h/2+1);
+    item=pic;
+    if(key){labelCache.set(key,item);while(labelCache.size>MAX_LABEL_CACHE)labelCache.delete(labelCache.keys().next().value);}
+  }else{labelCache.delete(key);labelCache.set(key,item);}
+  ctx.drawImage(item,x-item.width/2,y-item.height/2);
 }
 function bubble(text,x,y,s){
   const fs=Math.max(18,Math.round(26*s/.4)); ctx.font=`500 ${fs}px "Be Vietnam Pro",system-ui,sans-serif`;
@@ -285,9 +337,7 @@ let last=performance.now();
 function frame(now){
   requestAnimationFrame(frame); const dt=Math.min((now-last)/1000,.05); last=now; const t=now/1000;
   ctx.clearRect(0,0,1080,1920);
-  if (A.hall.naturalWidth) ctx.drawImage(A.hall,0,0,1080,1920);
-  stageScene.drawFloor(ctx);
-  stageScene.drawSeats(ctx,seats);
+  stageScene.drawBackground(ctx,A.hall,seats);
   // light: halo pulse behind the Buddha, candle flicker, incense smoke
   haloPulse=Math.max(0,haloPulse-dt*.4);
   ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=.2+.08*Math.sin(t*1.2)+haloPulse*.5; sprite(A.halo,540,560,2.7+haloPulse*.35,.5); ctx.restore();
@@ -301,7 +351,9 @@ function frame(now){
   const list=[...visitors.values()].sort((a,b)=>a.y-b.y);
   for (const v of list){
     const enteringSkin=entrySkin(v.skin);
-    const anim=hasAnim(enteringSkin), useMotionSprite=anim && (v.state!=='sit'||hasAnim(v.skin));
+    // Keep the original skin for monk/nun/child throughout entry: no abrupt
+    // replacement of a male/female walking sprite by another person at the seat.
+    const anim=hasAnim(enteringSkin), useMotionSprite=anim && hasAnim(v.skin);
     const s=v.seat?.scale||.4;
     if (v.state==='walk' && v.seat){
       const depth=(v.y-FLOOR.yTop)/(FLOOR.yBot-FLOOR.yTop), sp=(170+190*Math.max(0,Math.min(1.5,depth)))*dt, dx=v.seat.x-v.x, dy=v.seat.y-v.y;
@@ -310,6 +362,7 @@ function frame(now){
       if (Math.abs(v.x-v.seat.x)<2 && Math.abs(v.y-v.seat.y)<3){ v.x=v.seat.x; v.y=v.seat.y; v.state='sitting'; v.sitT=0; v.flip=false; }
     } else if (v.state==='sitting'){ v.sitT+=dt; v.frame=4+Math.min(3,Math.floor(v.sitT/.22)); if (v.sitT>.9){ v.state='sit'; v.frame=7; } }
     else if (v.seat){ v.x+=(v.seat.x-v.x)*Math.min(1,dt*3); v.y+=(v.seat.y-v.y)*Math.min(1,dt*3); }      // glide when the grid grows
+    if(v.state==='sit' && v.pendingGiftMessages?.length)deliverGift(v,v.pendingGiftMessages.shift());
     v.fade=Math.min(1,v.fade+dt*2); v.glow=Math.max(0,v.glow-dt*.45); v.bow=Math.max(0,v.bow-dt*.7);
     const ws = v.state==='walk' ? (.26+.26*Math.max(0,Math.min(1,(v.y-FLOOR.yTop)/(FLOOR.yBot-FLOOR.yTop)))) * ((6/((GRID[cap]||GRID[24])[0]))**.7) : s;
     if (v.glow>0 || v.skin==='master'){ ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=Math.max(v.glow*.75, v.skin==='master'?.35+.1*Math.sin(t*1.6):0);
@@ -336,6 +389,8 @@ function frame(now){
       topY=(v.state==='sit'?a.seatH:a.fh*.97)*k;
       premium.drawCostume(ctx,v,k,currentFrame,nowMs);
     }else{
+      // Static-skin fallback retains visual identity while using positional
+      // walking/bowing motion until each skin receives a full animation atlas.
       const sk=v.skin==='master'?'monk':v.skin;
       const original=A[sk]||A.man;
       const source=premium.costumeSprite(original,liveReward?reward.outfit:null);
@@ -347,7 +402,8 @@ function frame(now){
     ctx.restore();
     premium.drawOver(ctx,v,ws,t,pose,nowMs);
     const ty=v.y-topY-14*ws/.4;
-    tag((v.demo?'[MẪU] ':'@')+v.name, v.x, ty, ws, liveReward||v.skin==='master'||v.coins>=99?'gold':'', avatar(v.avatar), v.state==='sit' ? v.seat?.gap : 0);
+    const label=v.demo?(cap>=64?'MẪU #'+String(order.indexOf(v.id)+1).padStart(2,'0'):'MẪU·'+v.name.replace(/^Mẫu\s*/i,'')):'@'+v.name;
+    tag(label, v.x, ty, ws, liveReward||v.skin==='master'||v.coins>=99?'gold':'', avatar(v.avatar), v.seat?.gap||110);
     if (v.bubble && now<v.bubble.until) bubbles.push([v.bubble.text, v.x, ty-Math.max(18,30*ws/.4), ws]); else v.bubble=null;
   }
   for (const b of bubbles) bubble(...b);
@@ -359,7 +415,8 @@ function frame(now){
     ctx.save(); ctx.globalAlpha=Math.min(1,p.life-p.t); ctx.translate(p.x,p.y);
     if (p.heart){ ctx.fillStyle='#ff5a7a'; ctx.font='34px serif'; ctx.textAlign='center'; ctx.fillText('♥',0,0); } else { ctx.rotate(Math.sin(p.t*2+i)*.6); sprite(A.petal,0,0,p.s,.5); }
     ctx.restore(); }
-  premium.drawEffects(ctx,dt);
+  premium.drawEffects(ctx,dt,visitors.size);
+  cinematicFX.render(ctx,now,reducedMotion||visitors.size>=80);
   stageScene.drawForeground(ctx);
 }
 /* lantern ambience: every few minutes the hall lanterns brighten for a moment */
