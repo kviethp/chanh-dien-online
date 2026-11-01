@@ -10,12 +10,14 @@
   const SKINS=['man','woman','child','elder','novice','monk','master'];
   const PROPS=['cushion','lotus','pagoda_lantern','beads','aura'];
   const FX=['legend_aura','floral_halo','legend_robe','lotus_throne','golden_beam','petal_swirl','golden_trail'];
-  const asset={scene:{},skin:{},prop:{},fx:{}};
+  const GIFT_KEYS=["rose","tiktok","gg","heart","fingerheart","rosa","perfume","donut","crane","confetti","butterfly","corgi","moneygun","swan","galaxy","fireworks","whale","meteor","interstellar","lion","universe"];
+  const asset={scene:{},skin:{},prop:{},fx:{},gift:{}};
   const load=file=>{const im=new Image();im.decoding='async';im.src=BASE+file+'.webp';return im;};
   for(const k of SCENES)asset.scene[k]=load(k);
   for(const k of SKINS)asset.skin[k]=load('characters/'+k+'_atlas');
   for(const k of PROPS)asset.prop[k]=load('props/'+k);
   for(const k of FX)asset.fx[k]=load('effects/'+k);
+  for(const k of GIFT_KEYS)asset.gift[k]=load('gift_vfx/'+k);
   const ready=im=>!!im&&im.complete&&im.naturalWidth>0;
   let chosen='hall',previous='hall',changedAt=0;
   const cached=new Map(),MAX_CACHED=3;
@@ -90,7 +92,7 @@
     if(!active)return;
     const {v,event,at}=active,dur=Math.max(1200,Math.min(9000,event.durationMs||3000));
     const p=(now-at)/dur;if(p>=1){active=null;return;}
-    const img=asset.fx[giftSprite[event.key]]||asset.prop[giftSprite[event.key]]||
+    const img=asset.gift[event.key]||asset.fx[giftSprite[event.key]]||asset.prop[giftSprite[event.key]]||
       asset.prop.lotus;if(!ready(img))return;
     const fade=Math.min(1,p*5,(1-p)*5);
     const s=(reduce?110:180+event.level*25)*(1+.12*Math.sin(p*Math.PI));
@@ -100,7 +102,7 @@
   }
   function health(){
     return {scene:SCENES.filter(k=>ready(asset.scene[k])),actors:SKINS.filter(k=>ready(asset.skin[k])),
-      props:PROPS.filter(k=>ready(asset.prop[k])),effects:FX.filter(k=>ready(asset.fx[k]))};
+      props:PROPS.filter(k=>ready(asset.prop[k])),effects:FX.filter(k=>ready(asset.fx[k])),giftVfx:GIFT_KEYS.filter(k=>ready(asset.gift[k]))};
   }
   root.V3Art=Object.freeze({choose,drawBackground,drawActor,onGift,drawGift,health,ready:()=>ready(asset.scene.hall),scene:()=>chosen,scenes:SCENES});
 })(window);
