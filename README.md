@@ -33,6 +33,20 @@ Chưa live vẫn thử được: dùng **Thử tương tác**, **Đổ người 
 - **Tặng quà**: banner xướng tên, giọng đọc hồi hướng (lấy lời nguyện từ bình luận gần nhất của người đó nếu có), hiệu ứng theo giá trị quà, cộng điểm vào bảng Công Đức.
 - **Thả tim**: tim bay trên đầu nhân vật.
 
+## Nâng cấp LIVE: Gift Cinematics 2.0 (nhánh tính năng)
+
+- Khi người xem bình luận, nhân vật bước qua cửa trước và đi vào hàng ghế theo phối cảnh; nhãn trên đầu hiển thị `@nickname`.
+- Quà tặng được ánh xạ qua `live/gift-engine.mjs`: danh mục 21 loại quà gợi ý, tự nhận diện theo tên. Quà lạ sử dụng hiệu ứng dự phòng theo giá trị.
+- **500–999** diamond/coins sự kiện: High (vòng sáng vàng, viền áo và tràng hạt mô phỏng).
+- **1.000–2.999**: VIP (aura 2 phút, vật phẩm đèn 15 phút, banner có danh hiệu).
+- **3.000–9.999**: Elite (vòng sáng dài hơn và vật phẩm/viền áo duy trì trong phiên LIVE).
+- **Từ 10.000**: Legend (banner đặc biệt, aura tới 5 phút, phần trang trí duy trì trong phiên LIVE).
+- Cinematic có hàng đợi ở overlay, không chồng hai banner quà cao đồng thời. Hiệu ứng này là tri ân thị giác, không đổi quyền tham gia các nghi lễ.
+- Bảng điều khiển có nút **Thử quà cao cấp** (500/1.000/3.000/10.000), không chi tiền thật.
+- Trong `live/`, chạy `npm test` để kiểm thử ngưỡng, mapping và sức chứa ghế.
+
+**Giới hạn:** Bản hiện tại vẽ aura/viền áo/vật phẩm dạng Canvas compositing, chưa phải bộ sprite trang phục được thiết kế riêng; phần nhận diện quà bằng tên phụ thuộc tên do TikTok cung cấp. Chưa nghiệm thu trên kênh TikTok LIVE thực.
+
 ## Bảo mật
 
 Dự án được viết để ai tải về chạy cũng an toàn mặc định:
