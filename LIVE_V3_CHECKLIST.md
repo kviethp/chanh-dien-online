@@ -71,7 +71,8 @@
 - [x] Có browser recording thật 42,68 giây (không phải video AI)
 - [x] Thêm stress test và asset health-check; CI unit/browser PASS ở nhiều commit đã kiểm chứng
 - [x] Unit/browser/audit PASS ở HEAD QA trước đó (workflow #41327217257)
-- [ ] CI PASS trên HEAD nhánh art-production sau thay đổi, bản bitmap được cài đặt và UAT
+- [x] Unit Test / Browser Test / npm audit PASS với code V3 art (GitHub Actions #41337393476, commit `98a648a`)
+- [ ] Bộ bitmap 39 ảnh được cài trong repository, qua `npm run test:art` và UAT hình ảnh trên OBS
 - [x] Quay video 42,68 giây từ chính renderer Chromium trong CI để review logic
 - [ ] Quay 30–45 giây từ OBS/TikTok LIVE Studio, có kiểm thử TTS/âm thanh và so sánh concept
 - [x] Nâng `ws` 8.18.0 → 8.22.1 và thêm `npm audit --audit-level=high` vào CI; audit ở commit kiểm tra báo 0 vulnerabilities
@@ -83,7 +84,7 @@
 - [x] Tạo 3 bối cảnh 1080×1920 (chánh điện không có ghế cố định, vườn sen, sân hoa đăng), xử lý ảnh WebP
 - [x] Tách riêng 8 ảnh nhân vật, 12 vật phẩm, 9 lớp VFX từ bảng art sinh bằng GPT
 - [x] Tạo 7 spritesheet × 8 frame (nội suy 2D, không được đánh đồng với rig artist-authored)
-- [x] Tạo gói art ZIP có hướng dẫn cài đặt và trình xem thử 2.5D, ảnh kiểm tra 24/36/64/100
+- [x] Tạo gói art ZIP có hướng dẫn cài đặt, demo 17 giây, ảnh kiểm tra 24/36/64/100 và 2 cảnh phụ; kiểm tra offline 107/107 mục đạt
 - [x] Kết nối renderer V3 và fallback vào overlay; thêm Admin chuyển 3 cảnh
 - [x] Viết unit test scene whitelist + fallback và browser test đồng bộ cấu hình Admin/overlay
 - [x] Thêm manifest 39 ảnh WebP dự kiến và lệnh `npm run test:art` để xác minh file sau cài
