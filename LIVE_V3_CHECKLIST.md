@@ -28,18 +28,19 @@
 - [x] Premium SVG, sprite dye + hoa văn chạy theo các khung hiện có
 - [ ] Animation chân/tay thực với chắp tay, dâng hoa, tặng đèn, đứng dậy, rời điện
 - [ ] Tên nickname tránh chồng, camera theo hàng và vật phẩm không che mặt
-- [x] Đo FPS tham khảo trên Chromium CI 100 người: 13,5 FPS baseline, dưới mục tiêu (không phải OBS)
-- [x] Tích hợp cache nền/chỗ ngồi và cache nhãn tên trong renderer (chờ đo lại)
+- [x] Đo FPS CI 100 người: 13,5 trước tối ưu → 52–60 FPS sau cache stage/label (không phải OBS)
+- [x] Tích hợp cache nền/chỗ ngồi và nhãn tên; đo cải thiện trong GitHub Actions
 - [ ] Đo đạt >=30 FPS ổn định với 100 nhân vật trên máy phát TikTok LIVE/OBS thực tế
 
 ## D. Gift events
 - [x] Danh mục ánh xạ 21 gift + tier 500 / 1000 / 3000 / 10000
 - [x] Vòng sáng, lời tri ân, vật phẩm và hàng đợi hiệu ứng cấp cao
-- [x] Tích hợp 21 chữ ký VFX Canvas theo mã quà, có giới hạn 5 animation đồng thời và chế độ giảm chuyển động
+- [x] Tích hợp 21 chữ ký VFX Canvas, mỗi lượt 1 cinematic toàn màn hình, hàng đợi giới hạn 8, chế độ giảm chuyển động và giảm particle khi đông người
 - [x] Bổ sung test ánh xạ 21 món quà và renderer VFX tại `live/gift-cinematics.test.mjs`
 - [ ] 21 cinematic artist-authored đúng phong cách concept, có intro/main/outro được nghiệm thu trên OBS
 - [x] Sửa luồng banner: khôi phục nội dung tụng sau khi hàng đợi quà VIP hoàn tất
-- [ ] Kiểm thử thực tế TTS không chen câu kinh, giảm motion và âm lượng phù hợp
+- [x] Sửa hàng đợi TTS tồn đọng trước khi mở âm thanh; xử lý phát lại khi trình duyệt từ chối autoplay
+- [ ] Kiểm thử thực tế TTS không chen câu kinh, giảm motion và âm lượng trên OBS
 - [ ] Xác minh giftId và giá trị quà với phiên TikTok thật
 
 ## E. Admin — studio mô phỏng minh bạch
@@ -56,7 +57,8 @@
 - [x] Viết bài test Chromium mô phỏng Admin/overlay và 4 mật độ ghế tại `live/browser-smoke.mjs`
 - [x] Chạy đạt bài test Chromium trong CI – Actions #41325391901 và #41325873371 PASS
 - [ ] Duyệt UX điện thoại/OBS theo screenshot master concept và các trường hợp gift cao
-- [ ] Kiểm thử luồng 100 người và hàng đợi 21 gift end-to-end
+- [x] Playwright kiểm tra 100 người + 5 quà VIP, ghi screenshot và FPS stress: 0,9–1,4 → 32–47 FPS trên CI sau tối ưu
+- [ ] Stress toàn bộ 21 món quà và hàng đợi theo sự kiện TikTok thật, OBS trên máy phát
 
 ## F. QA / nghiệm thu
 - [x] Kiểm tra tĩnh cú pháp JavaScript server/control/overlay/simulator
@@ -65,10 +67,12 @@
 - [x] Tạo GitHub Actions chạy `npm ci`, `npm test`, Chromium và xuất ảnh QA
 - [x] Xác nhận `npm test` + Chromium PASS và lưu screenshot 24/36/64/100 (đợt CI #41325873371)
 - [x] Có browser recording thật 42,68 giây (không phải video AI)
-- [ ] CI PASS ở HEAD cuối sau tối ưu FPS; duyệt screenshot và video trước release
+- [x] Thêm stress test và asset health-check; CI unit/browser PASS ở nhiều commit đã kiểm chứng
+- [ ] CI unit/browser/audit PASS ở HEAD cuối sau vá WebSocket và chốt UAT
 - [x] Quay video 42,68 giây từ chính renderer Chromium trong CI để review logic
 - [ ] Quay 30–45 giây từ OBS/TikTok LIVE Studio, có kiểm thử TTS/âm thanh và so sánh concept
-- [ ] UAT, phân tích FPS/latency/độ ổn định và sửa P0/P1
+- [x] Nâng `ws` 8.18.0 → 8.22.1 và thêm `npm audit --audit-level=high` vào CI; audit ở commit kiểm tra báo 0 vulnerabilities
+- [ ] UAT, phân tích FPS/latency/độ ổn định và sửa P0/P1 trên OBS/TikTok thật
 - [ ] Ready for Review → merge vào main sau khi chấp thuận
 
 ## Các quy tắc dữ liệu mẫu
