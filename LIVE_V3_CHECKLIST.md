@@ -12,7 +12,7 @@
 
 ## B. Chánh điện / asset chất lượng sản xuất
 - [x] Tạo lớp sàn sạch phủ vùng ghế cũ, bồ đoàn động và cửa tiền cảnh dạng SVG (bản kỹ thuật dùng để tích hợp)
-- [ ] Thay bản SVG kỹ thuật bằng asset cinematic artist-authored đúng concept
+- [ ] Thay bản SVG kỹ thuật bằng asset cinematic artist-authored đúng concept (chưa thể xác nhận bản nền mới hoạt động trong ứng dụng)
 - [ ] Sàn, phản xạ, vật thể che trước nhân vật và các lớp ánh sáng, khói
 - [x] Triển khai seat map 24/36/64/100 với lối giữa và lớp bồ đoàn động
 - [x] Kiểm tra tính duy nhất tọa độ và lối đi bằng 17 phép thử thực thi độc lập
@@ -32,7 +32,9 @@
 ## D. Gift events
 - [x] Danh mục ánh xạ 21 gift + tier 500 / 1000 / 3000 / 10000
 - [x] Vòng sáng, lời tri ân, vật phẩm và hàng đợi hiệu ứng cấp cao
-- [ ] 21 cinematic được dựng theo phong cách concept, có đủ intro/main/outro
+- [x] Tích hợp 21 chữ ký VFX Canvas theo mã quà, có giới hạn 5 animation đồng thời và chế độ giảm chuyển động
+- [x] Bổ sung test ánh xạ 21 món quà và renderer VFX tại `live/gift-cinematics.test.mjs`
+- [ ] 21 cinematic artist-authored đúng phong cách concept, có intro/main/outro được nghiệm thu trên OBS
 - [x] Sửa luồng banner: khôi phục nội dung tụng sau khi hàng đợi quà VIP hoàn tất
 - [ ] Kiểm thử thực tế TTS không chen câu kinh, giảm motion và âm lượng phù hợp
 - [ ] Xác minh giftId và giá trị quà với phiên TikTok thật
@@ -57,7 +59,7 @@
 - [x] Bổ sung kiểm thử đơn vị cho lựa chọn quà ảo, chống gửi cho user thật, ngưỡng và giới hạn tần suất
 - [x] Thêm `live/stage-geometry.test.mjs` cho 4 mật độ, đường đi và sự phù hợp renderer
 - [x] Tạo GitHub Actions chạy `npm ci`, `npm test`, Chromium và xuất ảnh QA
-- [ ] CI báo PASS cho `npm test` + Chromium và xác minh asset/ảnh chụp (chưa có kết quả)
+- [ ] CI báo PASS cho `npm test` + Chromium và xác minh asset/ảnh chụp (chưa có kết quả; repository GitHub Actions chưa có workflow run)
 - [ ] Quay 30–45 giây từ renderer thật (OBS), không dùng storyboard AI thay thế
 - [ ] UAT, phân tích FPS/latency/độ ổn định và sửa P0/P1
 - [ ] Ready for Review → merge vào main sau khi chấp thuận
