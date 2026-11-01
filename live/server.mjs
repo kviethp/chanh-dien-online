@@ -12,6 +12,8 @@ import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { giftEvent, getSeatCapacity } from './gift-engine.mjs';
+import { makeDemoId, normalizeDemoName, DEMO_SKINS, DEMO_GIFTS, SCENARIOS, publicAudienceStats, isDemoAllowed, clampDemoNumber } from './simulator.mjs';
+import { normalizeAutoGiftConfig, selectGift, selectDemoTarget } from './gift-simulator.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');            // repo root: serves /assets, /live
@@ -33,7 +35,51 @@ const settings = {
   joinOnEnter: true,                 // seat public MEMBER join events when TikTok emits them
   gifts: { readAll: true, minDiamonds: 1 },
 };
-const viewers = new Map();           // id -> { id, name, skin, avatar, coins, joinedAt, lastAt, lastText, lastTextAt, demo }
+const viewers = new Map();
+let demoSeq=0, scenarioTimer=null, demoOnAir=false;
+let autoGiftTimer=null;
+let autoGiftState={running:false,done:0,config:null};
+const demoGiftHistory=[];
+function demoPermitted(){return isDemoAllowed(tiktokState.status,demoOnAir);}
+function stopScenario(){if(scenarioTimer)clearTimeout(scenarioTimer);scenarioTimer=null;}
+function demoStats(){return publicAudienceStats(viewers.values());}
+function broadcastGiftSimulator(){
+  broadcast({t:'giftSimulatorState',state:autoGiftState},'control');
+}
+function stopAutoGift(reason='manual'){
+  if(autoGiftTimer)clearTimeout(autoGiftTimer);
+  autoGiftTimer=null;
+  if(!autoGiftState.running)return;
+  autoGiftState={...autoGiftState,running:false,reason};
+  broadcastGiftSimulator();
+}
+function startAutoGift(input){
+  stopAutoGift('restart');
+  if(!demoPermitted()){addLog('Mô phỏng tự động không khả dụng khi chưa cho phép demo');return;}
+  const config=normalizeAutoGiftConfig(input);
+  if(config.target==='selected'&&!viewers.get(config.targetId)?.demo){
+    addLog('Vui lòng chọn một nhân vật mẫu hợp lệ');return;
+  }
+  if(config.target==='random'&&![...viewers.values()].some(v=>v.demo)){
+    const created=createDemo('Thử hiệu ứng','woman');
+    if(!created){addLog('Không đủ vị trí tạo nhân vật mẫu');return;}
+  }
+  autoGiftState={running:true,done:0,config};
+  broadcastGiftSimulator();
+  const step=()=>{
+    if(!demoPermitted())return stopAutoGift('live-safety');
+    if(!autoGiftState.running)return;
+    const target=selectDemoTarget(viewers.values(),config);
+    if(!target)return stopAutoGift('no-demo-target');
+    const gift=selectGift(config);
+    demoGift(target.id,gift.name,gift.value,1);
+    autoGiftState={...autoGiftState,done:autoGiftState.done+1};
+    broadcastGiftSimulator();
+    if(autoGiftState.done>=config.maxEvents)return stopAutoGift('completed');
+    autoGiftTimer=setTimeout(step,config.intervalMs);
+  };
+  step();
+}           // id -> { id, name, skin, avatar, coins, joinedAt, lastAt, lastText, lastTextAt, demo }
 const startedAt = Date.now();
 let tiktok = null, tiktokState = { status: 'idle', uniqueId: '', error: '' };
 const log = [];
@@ -58,19 +104,21 @@ function skinFromText(t){
 }
 const DEFAULT_SKINS = ['man', 'woman', 'woman', 'man', 'granny'];
 
-function pub(v){ return { id:v.id, name:v.name, skin:v.skin, avatar:v.avatar||'', coins:v.coins, demo:!!v.demo, reward:v.reward||null }; }
-function snapshot(){ return { t:'state', settings, viewers:[...viewers.values()].map(pub), cap: capacity(), startedAt, tiktok: tiktokState }; }
+function pub(v){ return { id:v.id, name:v.name, skin:v.skin, avatar:v.avatar||'', coins:v.demo?0:v.coins, demoCoins:v.demo?(v.demoCoins||0):0, demo:!!v.demo, reward:v.reward||null }; }
+function snapshot(){ return { t:'state', settings, viewers:[...viewers.values()].map(pub), cap: capacity(), startedAt, tiktok: tiktokState, demoStats:demoStats(), demoOnAir, autoGiftState, demoGiftHistory:demoGiftHistory.slice(-50) }; }
 
 function seat(id, name, opts = {}){
+  if(id===null||id===undefined||id==='')return {v:null,isNew:false};
   let v = viewers.get(id);
   if (v){ v.lastAt = Date.now(); if (opts.avatar) v.avatar = opts.avatar; return { v, isNew:false }; }
-  if (viewers.size >= seatLimit()){                     // full: the longest-quiet non-donor stands up
-    const quiet = [...viewers.values()].filter(x => x.coins === 0).sort((a,b) => a.lastAt - b.lastAt)[0];
+  if (viewers.size >= seatLimit()){                     // demos may never displace real visitors
+    if(opts.demo)return {v:null,isNew:false};
+    const quiet = [...viewers.values()].filter(x => x.demo || x.coins === 0).sort((a,b) => Number(b.demo)-Number(a.demo) || a.lastAt-b.lastAt)[0];
     if (!quiet) return { v:null, isNew:false };
     viewers.delete(quiet.id); broadcast({ t:'leave', id: quiet.id });
   }
   v = { id, name: (name||id).slice(0, 18), skin: opts.skin || DEFAULT_SKINS[viewers.size % DEFAULT_SKINS.length],
-        avatar: opts.avatar || '', coins: 0, joinedAt: Date.now(), lastAt: Date.now(), demo: !!opts.demo, reward: null };
+        avatar: opts.avatar || '', coins: 0, demoCoins:0, joinedAt: Date.now(), lastAt: Date.now(), demo: !!opts.demo, reward: null };
   viewers.set(id, v);
   broadcast({ t:'join', v: pub(v), cap: capacity() });
   return { v, isNew:true };
@@ -92,7 +140,8 @@ function onGift(id, name, giftName, count, diamonds, avatar){
   const { v } = seat(id, name, { avatar });
   if (!v) return;
   const coins = Math.max(1, (diamonds || 1) * (count || 1));
-  v.coins += coins;
+  if(v.demo)v.demoCoins=(v.demoCoins||0)+coins;
+  else v.coins+=coins;
   const prayer = (v.lastText && Date.now() - v.lastTextAt < 90_000 && v.lastText.length > 6) ? v.lastText : pickPrayer();
   const event = giftEvent(giftName, coins);
   const tier = event.level >= 4 ? 3 : event.level >= 2 ? 2 : 1;
@@ -103,8 +152,14 @@ function onGift(id, name, giftName, count, diamonds, avatar){
     } else v.reward.auraUntil = Math.max(v.reward.auraUntil || 0, event.auraUntil || 0);
   }
   const line = `Nam mô A Di Đà Phật. Phật tử ${spoken(v.name)} thành tâm dâng ${giftName}${count > 1 ? ', ' + count + ' lần' : ''}. ${prayer}.`;
-  broadcast({ t:'gift', id, name: v.name, giftName, count, coins, total: v.coins, tier, prayer, event, reward:v.reward||null });
-  if (settings.gifts.readAll || coins >= settings.gifts.minDiamonds) say(line, { tag:'gift', id });
+  broadcast({ t:'gift', id, name: v.name, giftName, count, coins, total: v.demo?v.demoCoins:v.coins, tier, prayer, event, reward:v.reward||null, demo:!!v.demo });
+  if(v.demo){
+    const item={id:v.id,name:v.name,giftName,coins,count,at:Date.now(),tier:event.tier,level:event.level,demo:true};
+    demoGiftHistory.push(item);
+    if(demoGiftHistory.length>100)demoGiftHistory.shift();
+    broadcast({t:'demoGiftLog',item},'control');
+  }
+  if (!v.demo && (settings.gifts.readAll || coins >= settings.gifts.minDiamonds)) say(line, { tag:'gift', id });
 }
 
 function pickPrayer(){
@@ -188,21 +243,73 @@ async function disconnectTikTok(){ if (tiktok){ try { await tiktok.disconnect();
 /* ------------------------------------------------------------- test data */
 const DEMO_NAMES = ['Diệu Hạnh','Minh Tâm','Thiện Đức','Huệ An','Tịnh Nhã','Quảng Trí','Chơn Như','Pháp Hỷ','Nguyên Thanh','Tâm Đăng','Diệu Liên','Trí Hải','Phước Lộc','Hạnh Nguyện','Như Ý','Bảo Châu','Thanh Lương','Từ Tâm','An Lạc','Giác Hoa','Tuệ Minh','Liên Hương','Thu Hà','Ngọc Lan','Đức Anh','Hải Đăng','Mai Anh','Phương Thảo','Trung Kiên','Quang Huy','Bảo Ngọc','Diệu Linh'];
 function fillDemo(n){
+  if(!demoPermitted())return;
+
   const have = [...viewers.values()].filter(v => v.demo).length;
-  for (let i = have; i < n && viewers.size < 100; i++){
-    const name = DEMO_NAMES[i % DEMO_NAMES.length] + (i >= DEMO_NAMES.length ? ' ' + (Math.floor(i / DEMO_NAMES.length) + 1) : '');
+  for (let i = have; i < n && viewers.size < seatLimit(); i++){
+    const name = 'Mẫu ' + DEMO_NAMES[i % DEMO_NAMES.length] + (i >= DEMO_NAMES.length ? ' ' + (Math.floor(i / DEMO_NAMES.length) + 1) : '');
     seat('demo_' + i, name, { demo: true, skin: ['man','woman','woman','man','granny','monk','nun','child'][i % 8] });
   }
 }
-function clearSeats(){ viewers.clear(); broadcast(snapshot()); addLog('Đã làm trống bồ đoàn'); }
+function clearSeats(){stopAutoGift('clear');stopScenario(); viewers.clear(); broadcast(snapshot()); addLog('Đã làm trống bồ đoàn'); }
 
+/* ---------------------------------------------------- transparent demo studio */
+function createDemo(name,skin) {
+  if(!demoPermitted())return null;
+  const id=makeDemoId(++demoSeq),n='Mẫu '+normalizeDemoName(name);
+  return seat(id,n,{demo:true,skin:DEMO_SKINS.includes(skin)?skin:'woman'}).v;
+}
+function demoGift(id,giftName,value,count){
+  if(!demoPermitted())return;
+  const v=viewers.get(id);
+  if(!v?.demo)return;
+  onGift(v.id,v.name,giftName,clampDemoNumber(count,1,99),clampDemoNumber(value,1,50000));
+}
+function deleteDemo(id) {
+  if(autoGiftState.running && autoGiftState.config?.target==='selected' && autoGiftState.config.targetId===id)stopAutoGift('target-removed');
+  const v=viewers.get(id);
+  if(!v?.demo)return;
+  viewers.delete(id);broadcast({t:'leave',id});
+}
+function resetDemos() {
+  stopAutoGift('reset');stopScenario();setBots(false,0,'mid');
+  for(const [id,v]of viewers)if(v.demo)deleteDemo(id);
+}
+function scenario(kind) {
+  stopScenario();
+  if(!demoPermitted()||!SCENARIOS[kind])return;
+  const cfg=SCENARIOS[kind];let index=0;
+  const step=()=>{
+    if(!demoPermitted())return stopScenario();
+    if(index>=cfg.count)return stopScenario();
+    const v=createDemo('Kịch bản '+(index+1),DEMO_SKINS[index%DEMO_SKINS.length]);
+    if(v&&cfg.gift){
+      const value=cfg.values?.[index]??DEMO_GIFTS[cfg.giftIndex||0].value;
+      const item=DEMO_GIFTS.find(g=>g.value===value)||DEMO_GIFTS[0];
+      demoGift(v.id,item.name,value,1);
+    }
+    index++;
+    if(index<cfg.count)scenarioTimer=setTimeout(step,cfg.intervalMs);
+  };
+  step();
+}
 /* ------------------------------------------------------------- control */
 function onControl(m){
   switch (m.cmd){
-    case 'connect': connectTikTok(m.uniqueId); break;
+    case 'connect': { stopScenario();stopAutoGift('connect');if(!demoOnAir)resetDemos();connectTikTok(m.uniqueId);break; }
+    case 'demoOnAir': demoOnAir=!!m.enabled; if(!demoOnAir&&(tiktokState.status==='connected'||tiktokState.status==='connecting'))resetDemos();broadcast({t:'demoMode',enabled:demoOnAir});break;
+    case 'demoCreate': createDemo(m.name,m.skin);break;
+    case 'demoGift': demoGift(String(m.id||''),String(m.gift||'Hoa hồng'),m.value,m.count);break;
+    case 'demoGiftAuto': startAutoGift(m.options||{});break;
+    case 'demoGiftStop': stopAutoGift('manual');break;
+    case 'demoGiftClearLog': demoGiftHistory.length=0;broadcast({t:'demoGiftLogClear'},'control');break;
+    case 'demoRemove': deleteDemo(String(m.id||''));break;
+    case 'demoReset': resetDemos();break;
+    case 'demoScenario': scenario(String(m.scenario||''));break;
+    case 'demoStop': stopScenario();break;
     case 'disconnect': disconnectTikTok(); addLog('Đã ngắt kết nối TikTok'); break;
-    case 'chat': { const n = String(m.name || 'Khách').slice(0, 18); onChat('sim_' + n, n, String(m.text || 'Nam mô A Di Đà Phật').slice(0, 120)); break; }
-    case 'gift': { const n = String(m.name || 'Khách').slice(0, 18); onGift('sim_' + n, n, String(m.gift || 'Hoa hồng').slice(0, 30), clamp(m.count, 1, 99), clamp(m.diamonds, 1, 50000)); break; }
+    case 'chat': { if(!demoPermitted())break; const v=createDemo(m.name,'woman');if(v)onChat(v.id,v.name,String(m.text||'Nam mô A Di Đà Phật').slice(0,120)); break; }
+    case 'gift': { if(!demoPermitted())break;const v=createDemo(m.name,'woman');if(v)demoGift(v.id,m.gift,m.diamonds,m.count);break; }
     case 'fill': fillDemo(clamp(m.n, 1, 100)); addLog(`Đổ người mẫu: ${viewers.size} người`); break;
     case 'clear': clearSeats(); break;
     case 'bell': broadcast({ t:'bell' }); break;
@@ -230,7 +337,7 @@ function applySettings(o){
   // Keeping 100 avatars after switching to 24 seats leaves 76 invisible.
   const max=seatLimit();
   if(viewers.size>max){
-    const evict=[...viewers.values()].sort((a,b)=>a.coins-b.coins||a.lastAt-b.lastAt).slice(0,viewers.size-max);
+    const evict=[...viewers.values()].sort((a,b)=>Number(b.demo)-Number(a.demo)||a.coins-b.coins||a.lastAt-b.lastAt).slice(0,viewers.size-max);
     for(const v of evict){viewers.delete(v.id);broadcast({t:'leave',id:v.id});}
     addLog('Đã điều chỉnh về '+viewers.size+' chỗ ngồi theo cấu hình mới');
   }
@@ -241,10 +348,11 @@ let botTimer = null;
 const BOT_LINES = ['Nam mô A Di Đà Phật', 'Nam mô Bổn Sư Thích Ca Mâu Ni Phật', 'Cầu cho gia đình bình an', 'Con xin thành tâm sám hối', 'nữ', 'nam', 'bà',
   'Nguyện cầu cha mẹ mạnh khỏe', 'Mô Phật, an lạc quá', 'Chúc mọi người một ngày bình an', 'sư', 'Cầu công việc hanh thông'];
 function setBots(on, n, pace){
+  if(on&&!demoPermitted())return;
   clearInterval(botTimer); botTimer = null;
   if (on){
     n = clamp(n, 1, 100);
-    for (let i = 0; i < n; i++) seat('bot_' + i, DEMO_NAMES[(i + 7) % DEMO_NAMES.length] + ' ·bot', { demo: true });
+    for (let i = 0; i < n; i++) seat('bot_' + i, 'Mẫu '+DEMO_NAMES[(i + 7) % DEMO_NAMES.length] + ' ·bot', { demo: true });
     const every = { slow: 4000, mid: 1800, fast: 700 }[pace] || 1800;
     botTimer = setInterval(() => {
       const ids = [...viewers.keys()].filter(id => id.startsWith('bot_')); if (!ids.length) return;
@@ -302,7 +410,7 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 64 * 1024,
   verifyClient: ({ origin, req }) => {
     if (!okHost(req.headers.host)) return false;
-    if (!origin) return true;                                   // OBS / non-browser clients send no Origin
+    if (!origin) return false;                                   // OBS / non-browser clients send no Origin
     try { return okHost(new URL(origin).host); } catch { return false; }
   } });
 function broadcast(msg, only){ const s = JSON.stringify(msg); for (const c of wss.clients) if (c.readyState === 1 && (!only || c.role === only)) c.send(s); }
