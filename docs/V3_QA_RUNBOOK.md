@@ -6,7 +6,10 @@
 - Actions [41325873371](https://github.com/kviethp/chanh-dien-online/actions/runs/41325873371): **PASS**, quay video thực tế từ Chromium overlay (42,68 giây, 540×960), snapshot 24/36/64/100 và 36/100 Full HD.
 - Artifacts nằm trong phần `live-v3-browser-screenshots` của workflow run. Video là **browser capture**, chưa phải OBS capture.
 - Unit tests pass, 21/21 tên quà được ánh xạ vào Gift Engine; mock tags/metrics tách khỏi người xem thật.
-- Chromium baseline 100 người: khoảng **13,5 FPS** trong CI runner lúc chưa cache static backdrop; không thể ngoại suy sang OBS/máy livestream.
+- Chromium baseline 100 người (trước tối ưu): **13,5 FPS**; sau cache nền/bồ đoàn + nhãn nhân vật: **52–60 FPS** trong nhiều lượt Actions (tham khảo, không phải OBS).
+- Stress test **100 người + 5 quà VIP**: ban đầu **0,9–1,4 FPS**, sau tối ưu FX chạy nối tiếp, giảm lượng particle và chi phí shadow blur, các lần CI PASS đạt **32,4 / 43,5 / 46,6 FPS**. Khi so sánh hãy đọc `report.json` theo đúng commit được test; không ngoại suy sang máy phát thật.
+- Dùng `live/browser-smoke.mjs` tự động chụp 24/36/64/100 + FullHD, cảnh 100 người/5 quà; quay `overlay-demo.webm`, ghi FPS với `requestAnimationFrame`.
+- GitHub Actions cài Playwright 1.56.1 trên `ubuntu-24.04` để tránh lỗi Playwright với Ubuntu 26.04.
 
 ## Các vấn đề phát hiện từ screenshot thật
 
@@ -20,8 +23,8 @@
 | ART-01 | 100 người khó đọc nickname đồng thời trên điện thoại | Cho phép thu gọn; thiết kế focus + nhãn đủ lớn khi gửi quà | Cần duyệt UI |
 | ART-02 | Trang phục vẫn là sprite nhuộm màu, chưa có rig 7 skin artist-authored | Chưa giải quyết | BLOCKER chất lượng concept |
 | MEDIA-01 | Video và ảnh trong CI không có TTS xác minh | Chưa giải quyết | BLOCKER production |
-| PERF-01 | CI 100 người dưới 30 FPS mục tiêu | Đang tối ưu | BLOCKER performance |
-| SECURITY-01 | `npm ci` báo 1 cảnh báo high-severity từ dependency | Cần `npm audit`, xác định dependency, nâng version có kiểm thử | BLOCKER phát hành |
+| PERF-01 | 100 người CI thường đạt 52–60 FPS; stress 100 người + 5 quà từ 0,9–1,4 lên 32–47 FPS | Đã tối ưu cache VFX, particle và hàng đợi; cần test máy phát thật | Chưa PASS OBS |
+| SECURITY-01 | `ws@8.18.0` có cảnh báo High | Đã nâng lên `ws@8.22.1`, npm audit kiểm tra 0 vulnerabilities trên CI; thêm gate `npm audit --audit-level=high` | CI unit/audit PASS; browser đang xác nhận ở commit HEAD |
 
 ## Thực thi kiểm thử
 
@@ -39,7 +42,7 @@ Với GitHub Actions, runner được cố định **ubuntu-24.04** vì Playwrig
 
 ## Các gate bắt buộc trước khi merge vào main
 
-1. `unit` và `browser` đều PASS ở **commit HEAD cuối**, không chỉ một commit cũ.
+1. `unit`, `npm audit` và `browser` đều PASS ở **commit HEAD cuối**, không chỉ một commit cũ.
 2. Không còn P0/P1 ở luồng xếp ghế, nhập điện, Gift Engine, quản trị, nhãn demo và TTS.
 3. Screenshot từ bản chạy thực tế (1080×1920) được PO/QA duyệt theo master concept.
 4. Chạy 24/36/64/100 người, đo FPS trên máy livestream đích đồng thời quay OBS, mục tiêu **>=30 FPS ổn định**.
@@ -48,3 +51,15 @@ Với GitHub Actions, runner được cố định **ubuntu-24.04** vì Playwrig
 7. PR được đổi từ Draft sang Ready chỉ sau khi có bằng chứng thỏa các mục liên quan.
 
 **Trạng thái:** bản hiện tại là testable prototype, không phải release production.
+
+## Lịch sử điểm kiểm thử tham khảo
+
+| Run ID | Nội dung | FPS 100 người | FPS 100 người + 5 quà | Kết quả |
+|---|---|---:|---:|---|
+| [41325873371](https://github.com/kviethp/chanh-dien-online/actions/runs/41325873371) | Trước cache stage | 13,5 | – | PASS logic |
+| [41326195881](https://github.com/kviethp/chanh-dien-online/actions/runs/41326195881) | Cache stage, chưa tag cache | 52 | – | PASS logic |
+| [41326458860](https://github.com/kviethp/chanh-dien-online/actions/runs/41326458860) | Stress trước kiểm soát FX | 57,7 | 0,9 | PASS logic, fail tiêu chí FPS |
+| [41326825600](https://github.com/kviethp/chanh-dien-online/actions/runs/41326825600) | Stress sau tối ưu | 60 | 43,5 | PASS CI, FPS tham khảo |
+| [41326811831](https://github.com/kviethp/chanh-dien-online/actions/runs/41326811831) | Stress sau tối ưu | 60 | 46,6 | PASS CI, FPS tham khảo |
+
+*Ghi chú:* FPS CI phụ thuộc cấu hình runner, phần mềm ghi màn hình và tải hệ thống, không dùng để cam kết trải nghiệm thực tế.
