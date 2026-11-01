@@ -1,7 +1,7 @@
 # CHECKLIST – Chánh Điện Online 3.0
 
 > Tiến độ được đánh dấu khi code tương ứng đã được cập nhật và kiểm tra cơ bản. Kết quả QA và blocker tại `docs/V3_QA_RUNBOOK.md`. **Không đánh dấu hoàn thành mỹ thuật/production nếu chưa nghiệm thu trên OBS.** 
-> Phát triển trên nhánh `feature/v3-hardening-and-qa` (PR riêng dựa trên nhánh sân khấu V3), PR review trước khi merge vào `main`.
+> Phát triển trên nhánh `feature/v3-art-production` (PR #5 dựa trên nhánh QA V3), PR review trước khi merge vào `main`.
 
 ## A. Kiểm tra hiện trạng / chuẩn hoá
 - [x] Kiểm tra PR #1, nhánh 2.0, cấu trúc assets/overlay/control/server
@@ -17,13 +17,15 @@
 - [x] Triển khai seat map 24/36/64/100 với lối giữa và lớp bồ đoàn động
 - [x] Kiểm tra tính duy nhất tọa độ và lối đi bằng 17 phép thử thực thi độc lập
 - [ ] Visual QA đường đi nhân vật, va chạm và seat map trên browser/OBS
-- [ ] Hai cảnh phụ: Vườn sen / Hoa đăng, có chuyển cảnh cinematic
+- [x] Dựng art WebP Vườn Sen / Sân Hoa Đăng và bổ sung chuyển cảnh crossfade trong V3 Art Engine (gói ZIP + code)
+- [ ] Cài file bitmap hai cảnh phụ vào repo và kiểm tra bằng screenshot Chromium/OBS, duyệt mỹ thuật
 - [x] Tích hợp bước tự chụp overlay 24/36/64/100 trong bài test browser (chưa chạy)
 - [x] Chụp và kiểm tra bước đầu snapshot 24/36/64/100 + 36/100 Full HD
 - [ ] Phê duyệt chất lượng UI theo master concept trên 2 kích thước; nickname 100 người còn khó đọc
 
 ## C. Nhân vật và chuyển động
-- [ ] Rig/atlas đồng bộ 7 skin; artist-authored outfits có ít nhất 8 trạng thái
+- [x] Tạo 7 atlas × 8 frame nội suy chuyển động từ ảnh GPT và xuất 8 sprite nhân vật (bản demo 2.5D)
+- [ ] Rig nhân vật chuyên nghiệp cho đủ 7 skin; artist-authored outfit cho mỗi tư thế, chưa đạt bởi atlas nội suy
 - [x] Giữ và tích hợp sprite gốc đi vào / quỳ / ngồi
 - [x] Premium SVG, sprite dye + hoa văn chạy theo các khung hiện có
 - [ ] Animation chân/tay thực với chắp tay, dâng hoa, tặng đèn, đứng dậy, rời điện
@@ -68,12 +70,28 @@
 - [x] Xác nhận `npm test` + Chromium PASS và lưu screenshot 24/36/64/100 (đợt CI #41325873371)
 - [x] Có browser recording thật 42,68 giây (không phải video AI)
 - [x] Thêm stress test và asset health-check; CI unit/browser PASS ở nhiều commit đã kiểm chứng
-- [ ] CI unit/browser/audit PASS ở HEAD cuối sau vá WebSocket và chốt UAT
+- [x] Unit/browser/audit PASS ở HEAD QA trước đó (workflow #41327217257)
+- [ ] CI PASS trên HEAD nhánh art-production sau thay đổi, bản bitmap được cài đặt và UAT
 - [x] Quay video 42,68 giây từ chính renderer Chromium trong CI để review logic
 - [ ] Quay 30–45 giây từ OBS/TikTok LIVE Studio, có kiểm thử TTS/âm thanh và so sánh concept
 - [x] Nâng `ws` 8.18.0 → 8.22.1 và thêm `npm audit --audit-level=high` vào CI; audit ở commit kiểm tra báo 0 vulnerabilities
 - [ ] UAT, phân tích FPS/latency/độ ổn định và sửa P0/P1 trên OBS/TikTok thật
 - [ ] Ready for Review → merge vào main sau khi chấp thuận
+
+## G. Bộ mỹ thuật GPT – nghiệm thu V3
+
+- [x] Tạo 3 bối cảnh 1080×1920 (chánh điện không có ghế cố định, vườn sen, sân hoa đăng), xử lý ảnh WebP
+- [x] Tách riêng 8 ảnh nhân vật, 12 vật phẩm, 9 lớp VFX từ bảng art sinh bằng GPT
+- [x] Tạo 7 spritesheet × 8 frame (nội suy 2D, không được đánh đồng với rig artist-authored)
+- [x] Tạo gói art ZIP có hướng dẫn cài đặt và trình xem thử 2.5D, ảnh kiểm tra 24/36/64/100
+- [x] Kết nối renderer V3 và fallback vào overlay; thêm Admin chuyển 3 cảnh
+- [x] Viết unit test scene whitelist + fallback và browser test đồng bộ cấu hình Admin/overlay
+- [x] Thêm manifest 39 ảnh WebP dự kiến và lệnh `npm run test:art` để xác minh file sau cài
+- [ ] Đưa 39 file ảnh bitmap từ gói ZIP vào GitHub branch, chạy `npm run test:art` PASS
+- [ ] Chụp ảnh và video Chromium khi bật asset V3 thật trên branch đã cài, kiểm tra không đè HUD/nhân vật
+- [ ] Phê duyệt bộ concept/màu sắc/nhân vật với người phụ trách sản phẩm
+- [ ] Hoàn thiện rig/texture 7 skin và toàn bộ 21 cinematic artist-authored (mở từ phần C/D)
+- [ ] Nghiệm thu OBS/TikTok LIVE, TTS và benchmark tải trên phần cứng mục tiêu
 
 ## Các quy tắc dữ liệu mẫu
 - Tạo người/quà ảo chỉ dùng để demo và QA, không mô phỏng giao dịch TikTok thật.
