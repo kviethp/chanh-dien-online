@@ -33,10 +33,10 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
 .dot{width:18px;height:18px;border-radius:50%;background:#46d36b;box-shadow:0 0 12px #46d36b}
 /* side cards */
 .card{background:var(--panel);border:2px solid var(--line);border-radius:22px;padding:18px 22px;font-size:25px;line-height:1.4;backdrop-filter:blur(4px)}
-#guide{left:24px;top:630px;width:290px}
+#guide{left:20px;top:630px;width:245px;font-size:22px;padding:13px 15px}
 #guide div+div{border-top:1px solid rgba(226,176,79,.3);margin-top:10px;padding-top:10px}
 #guide b{color:var(--gold2)}
-#merit{right:24px;top:630px;width:290px;text-align:center}
+#merit{right:20px;top:630px;width:245px;text-align:center;font-size:22px;padding:13px 15px}
 #merit h3{margin:0 0 8px;font-family:var(--display);font-size:30px;color:var(--gold2);letter-spacing:.06em}
 #merit ol{margin:0;padding:0;list-style:none;text-align:left;display:grid;gap:6px}
 #merit li{display:flex;justify-content:space-between;gap:10px}
@@ -44,12 +44,12 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
 #merit li span:last-child{color:var(--gold2);font-variant-numeric:tabular-nums}
 #merit .empty{color:var(--muted);text-align:center}
 /* chant banner + gift banner */
-#chant{left:110px;right:110px;top:330px;padding:22px 30px;text-align:center;border-radius:24px;border:2px solid var(--gold);
+#chant{left:195px;right:195px;top:1085px;padding:14px 22px;text-align:center;border-radius:22px;border:2px solid var(--gold);
   background:rgba(40,18,8,.86);opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
 #chant.show{opacity:1;transform:none}
 #chant h4{margin:0 0 8px;font-family:var(--display);color:var(--gold2);font-size:30px;letter-spacing:.1em}
 #chant p{margin:0;font-family:var(--display);font-style:italic;font-size:30px;line-height:1.45}
-#gift{left:70px;right:70px;top:330px;z-index:5;padding:30px 40px;text-align:center;border-radius:28px;border:3px solid var(--gold2);
+#gift{left:125px;right:125px;top:1165px;z-index:5;padding:16px 24px;text-align:center;border-radius:24px;border:3px solid var(--gold2);
   background:radial-gradient(ellipse at 50% 0%,rgba(150,40,20,.95),rgba(50,14,6,.95));box-shadow:0 0 60px rgba(255,190,90,.45);
   opacity:0;transform:scale(.85);transition:opacity .45s,transform .45s cubic-bezier(.2,1.4,.4,1)}
 #gift.show{opacity:1;transform:none}
@@ -58,11 +58,11 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
 #gift .prestige{font-size:26px;color:#ffe2a1;letter-spacing:.08em;margin-top:9px}
 #gift.special{animation:prestigePop 1.4s ease-out}
 @keyframes prestigePop{0%{filter:brightness(2);scale:1.05}100%{filter:brightness(1);scale:1}}
-#gift .who{font-family:var(--display);font-weight:700;font-size:52px;color:var(--gold2)}
-#gift .what{font-size:36px;margin-top:6px}
-#gift .pray{font-family:var(--display);font-style:italic;font-size:32px;color:var(--fg);margin-top:12px;opacity:.95}
+#gift .who{font-family:var(--display);font-weight:700;font-size:42px;color:var(--gold2);overflow-wrap:anywhere;line-height:1.2}
+#gift .what{font-size:27px;margin-top:4px;line-height:1.3}
+#gift .pray{font-family:var(--display);font-style:italic;font-size:24px;color:var(--fg);margin-top:7px;opacity:.95;max-height:64px;overflow:hidden}
 /* enable sound (needed once: browsers block autoplay) */
-#unmute{position:absolute;z-index:9;left:50%;top:1540px;transform:translateX(-50%);font:600 36px var(--body);padding:22px 44px;border-radius:24px;border:3px solid var(--gold2);background:var(--red);color:#fff4dc;cursor:pointer}
+#unmute{position:absolute;z-index:9;left:50%;top:1710px;transform:translateX(-50%);font:600 24px var(--body);padding:10px 19px;border-radius:999px;border:2px solid var(--gold2);background:rgba(92,33,16,.95);color:#fff4dc;cursor:pointer;white-space:nowrap}
 #conn{position:absolute;z-index:4;right:16px;bottom:12px;font-size:20px;color:var(--muted);opacity:.6}
 @media (prefers-reduced-motion:reduce){#chant,#gift{transition:none}}
 </style>
@@ -269,7 +269,7 @@ const ctx=document.getElementById('c').getContext('2d');
 function sprite(im,x,y,s,ay=1){ const iw=im?.naturalWidth||im?.width, ih=im?.naturalHeight||im?.height; if(!iw||!ih)return; const w=iw*s,h=ih*s; ctx.drawImage(im,x-w/2,y-h*ay,w,h); }
 function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 function tag(text,x,y,s,style,av,maxW){
-  const fs=Math.max(15,Math.round(30*s/.4)); ctx.font=`600 ${fs}px "Be Vietnam Pro",system-ui,sans-serif`;
+  const fs=Math.max(10,Math.min(Math.round(30*s/.4), maxW?Math.floor(maxW/5.8):42)); ctx.font=`600 ${fs}px "Be Vietnam Pro",system-ui,sans-serif`;
   const pad=fs*.5; let aw = av?fs*1.15:0;
   if (maxW){ if (aw && maxW < fs*5) aw=0, av=null; let t=text; while (t.length>2 && ctx.measureText(t).width+pad*2+aw > maxW) t=t.slice(0,-1); if (t!==text) text=t.trimEnd()+'…'; }
   const w=ctx.measureText(text).width+pad*2+aw, h=fs*1.5;
@@ -306,7 +306,9 @@ function frame(now){
   const list=[...visitors.values()].sort((a,b)=>a.y-b.y);
   for (const v of list){
     const enteringSkin=entrySkin(v.skin);
-    const anim=hasAnim(enteringSkin), useMotionSprite=anim && (v.state!=='sit'||hasAnim(v.skin));
+    // Keep the original skin for monk/nun/child throughout entry: no abrupt
+    // replacement of a male/female walking sprite by another person at the seat.
+    const anim=hasAnim(enteringSkin), useMotionSprite=anim && hasAnim(v.skin);
     const s=v.seat?.scale||.4;
     if (v.state==='walk' && v.seat){
       const depth=(v.y-FLOOR.yTop)/(FLOOR.yBot-FLOOR.yTop), sp=(170+190*Math.max(0,Math.min(1.5,depth)))*dt, dx=v.seat.x-v.x, dy=v.seat.y-v.y;
@@ -341,6 +343,8 @@ function frame(now){
       topY=(v.state==='sit'?a.seatH:a.fh*.97)*k;
       premium.drawCostume(ctx,v,k,currentFrame,nowMs);
     }else{
+      // Static-skin fallback retains visual identity while using positional
+      // walking/bowing motion until each skin receives a full animation atlas.
       const sk=v.skin==='master'?'monk':v.skin;
       const original=A[sk]||A.man;
       const source=premium.costumeSprite(original,liveReward?reward.outfit:null);
@@ -352,7 +356,8 @@ function frame(now){
     ctx.restore();
     premium.drawOver(ctx,v,ws,t,pose,nowMs);
     const ty=v.y-topY-14*ws/.4;
-    tag((v.demo?'[MẪU] ':'@')+v.name, v.x, ty, ws, liveReward||v.skin==='master'||v.coins>=99?'gold':'', avatar(v.avatar), v.state==='sit' ? v.seat?.gap : 0);
+    const label=v.demo?(cap>=64?'MẪU #'+String(order.indexOf(v.id)+1).padStart(2,'0'):'MẪU·'+v.name.replace(/^Mẫu\s*/i,'')):'@'+v.name;
+    tag(label, v.x, ty, ws, liveReward||v.skin==='master'||v.coins>=99?'gold':'', avatar(v.avatar), v.seat?.gap||110);
     if (v.bubble && now<v.bubble.until) bubbles.push([v.bubble.text, v.x, ty-Math.max(18,30*ws/.4), ws]); else v.bubble=null;
   }
   for (const b of bubbles) bubble(...b);
