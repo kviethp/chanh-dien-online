@@ -140,6 +140,23 @@ function addVisitor(p, instant){
   if (instant || !v.seat){ v.state='sit'; v.frame=7; v.x=v.tx=v.seat?.x||540; v.y=v.ty=v.seat?.y||1500; v.fade = instant?1:0; }
 }
 function removeVisitor(id){ visitors.delete(id); reseat(); }
+// Gift events arriving while the devotee walks in are deferred until seated.
+// An unbounded event queue would otherwise flood the stage after a gift streak.
+function deliverGift(v,m){
+  giftFx(v,m.tier,m.event);
+  premium.giftReceived(v,m.event);
+  cinematicFX.trigger(v,m.event);
+  showGift(m);
+}
+function queueGift(v,m){
+  if(!v)return;
+  if(v.state==='sit'){deliverGift(v,m);return;}
+  const pending=v.pendingGiftMessages||(v.pendingGiftMessages=[]);
+  const repeat=pending.findLast(x=>x.giftName===m.giftName);
+  if(repeat){repeat.count+=m.count;repeat.coins+=m.coins;repeat.total=m.total;repeat.event=m.event;return;}
+  if(pending.length>=3)pending.shift();
+  pending.push({...m});
+}
 
 /* ======================= HUD ======================= */
 let startedAt = Date.now();
@@ -248,7 +265,7 @@ function connect(){
       case 'leave': removeVisitor(m.id); updateCount(); renderMerit(); break;
       case 'skin': { const v=visitors.get(m.id); if(v){ v.skin=m.skin; v.glow=.8; if(v.state!=='sit'){ v.state='sit'; v.frame=7; } } } break;
       case 'chat': { const v=visitors.get(m.id); if(v){ v.bubble={text:m.text, until:performance.now()+6000}; v.bow=.6; } } break;
-      case 'gift': { const v=visitors.get(m.id); if(v){ if(m.demo)v.demoCoins=m.total; else v.coins=m.total; if(m.reward) v.reward=m.reward; giftFx(v,m.tier,m.event); premium.giftReceived(v,m.event);cinematicFX.trigger(v,m.event); } renderMerit(); showGift(m); } break;
+      case 'gift': { const v=visitors.get(m.id); if(v){ if(m.demo)v.demoCoins=m.total; else v.coins=m.total; if(m.reward)v.reward=m.reward; queueGift(v,m); }else showGift(m); renderMerit(); } break;
       case 'like': { const v=visitors.get(m.id); if(v) hearts(v,m.n); } break;
       case 'tts': queueTTS(m.url); break;
       case 'chant': showChant(m.text); bell(); break;
@@ -345,6 +362,7 @@ function frame(now){
       if (Math.abs(v.x-v.seat.x)<2 && Math.abs(v.y-v.seat.y)<3){ v.x=v.seat.x; v.y=v.seat.y; v.state='sitting'; v.sitT=0; v.flip=false; }
     } else if (v.state==='sitting'){ v.sitT+=dt; v.frame=4+Math.min(3,Math.floor(v.sitT/.22)); if (v.sitT>.9){ v.state='sit'; v.frame=7; } }
     else if (v.seat){ v.x+=(v.seat.x-v.x)*Math.min(1,dt*3); v.y+=(v.seat.y-v.y)*Math.min(1,dt*3); }      // glide when the grid grows
+    if(v.state==='sit' && v.pendingGiftMessages?.length)deliverGift(v,v.pendingGiftMessages.shift());
     v.fade=Math.min(1,v.fade+dt*2); v.glow=Math.max(0,v.glow-dt*.45); v.bow=Math.max(0,v.bow-dt*.7);
     const ws = v.state==='walk' ? (.26+.26*Math.max(0,Math.min(1,(v.y-FLOOR.yTop)/(FLOOR.yBot-FLOOR.yTop)))) * ((6/((GRID[cap]||GRID[24])[0]))**.7) : s;
     if (v.glow>0 || v.skin==='master'){ ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=Math.max(v.glow*.75, v.skin==='master'?.35+.1*Math.sin(t*1.6):0);
