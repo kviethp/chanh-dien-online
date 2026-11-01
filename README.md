@@ -45,7 +45,9 @@ Chưa live vẫn thử được: dùng **Thử tương tác**, **Đổ người 
 - Bảng điều khiển có nút **Thử quà cao cấp** (500/1.000/3.000/10.000), không chi tiền thật.
 - Trong `live/`, chạy `npm test` để kiểm thử ngưỡng, mapping và sức chứa ghế.
 
-**Giới hạn:** Bản hiện tại vẽ aura/viền áo/vật phẩm dạng Canvas compositing, chưa phải bộ sprite trang phục được thiết kế riêng; phần nhận diện quà bằng tên phụ thuộc tên do TikTok cung cấp. Chưa nghiệm thu trên kênh TikTok LIVE thực.
+**Bản nâng cấp mỹ thuật:** 14 SVG vector nền trong suốt được thêm tại `assets/premium/` (4 aura, 4 trang phục/hoa văn, 4 vật phẩm chính, hương và cánh sen). `live/premium-visuals.js` dùng thuật toán đổi màu áo dựa trên sắc độ vải gốc (giữ tóc/da/bồ đoàn), tự bám sprite 8 frame; bổ sung tư thế đứng/cúi/dâng lễ, chuyển động hoa, vòng sáng và sóng ánh sáng. Đồ họa phù hợp overlay 1080×1920. Không đổi sprite gốc hay sử dụng dịch vụ bên ngoài.
+
+**Giới hạn cần nghiệm thu:** Trang phục hiện là tổ hợp nhuộm màu sprite và vector trang trí chạy thực tế, chưa phải 4 bộ sprite 8 frame vẽ tay riêng. Phần nhận diện quà theo tên phụ thuộc TikTok; chưa nghiệm thu một phiên TikTok LIVE/OBS thực. Màu trang phục/vị trí vật phẩm cần xem trên overlay ở các mức 24/36/64/100 ghế.
 
 ## Bảo mật
 
