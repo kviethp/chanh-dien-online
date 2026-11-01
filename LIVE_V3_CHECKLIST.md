@@ -1,18 +1,22 @@
 # CHECKLIST – Chánh Điện Online 3.0
 
 > Tiến độ được đánh dấu khi code tương ứng đã được cập nhật và kiểm tra cơ bản. **Không đánh dấu hoàn thành mỹ thuật/production nếu chưa nghiệm thu trên OBS.** 
-> Phát triển trên nhánh `feature/v3-admin-demo-simulator`, PR review trước khi merge vào `main`.
+> Phát triển trên nhánh `feature/v3-cinematic-stage-milestone` (PR riêng dựa trên nhánh admin V3), PR review trước khi merge vào `main`.
 
 ## A. Kiểm tra hiện trạng / chuẩn hoá
 - [x] Kiểm tra PR #1, nhánh 2.0, cấu trúc assets/overlay/control/server
 - [x] Đối chiếu giới hạn sprite gốc: chỉ 3 animation strips, trang phục cao cấp chưa phải rig artist-authored
 - [ ] Phê duyệt một master concept 1080x1920 có vùng safe-area TikTok chính xác
-- [ ] Tạo art bible: typography, vật liệu, ánh sáng, tỷ lệ nhân vật, độ sâu lớp ảnh
+- [x] Viết đặc tả Art Bible V3 (bản nháp v0.1), palette, độ sâu và tiêu chí QA trong `docs/V3_ART_BIBLE.md`
+- [ ] Duyệt Art Bible và concept master trực quan trước khi khóa tài sản
 
 ## B. Chánh điện / asset chất lượng sản xuất
-- [ ] Dựng nền chánh điện và cửa chính thành lớp độc lập, không vẽ cố định bồ đoàn trong ảnh nền
+- [x] Tạo lớp sàn sạch phủ vùng ghế cũ, bồ đoàn động và cửa tiền cảnh dạng SVG (bản kỹ thuật dùng để tích hợp)
+- [ ] Thay bản SVG kỹ thuật bằng asset cinematic artist-authored đúng concept
 - [ ] Sàn, phản xạ, vật thể che trước nhân vật và các lớp ánh sáng, khói
-- [ ] Seat map 24 / 36 / 64 / 100 với phối cảnh và đường đi không va chạm
+- [x] Triển khai seat map 24/36/64/100 với lối giữa và lớp bồ đoàn động
+- [x] Kiểm tra tính duy nhất tọa độ và lối đi bằng 17 phép thử thực thi độc lập
+- [ ] Visual QA đường đi nhân vật, va chạm và seat map trên browser/OBS
 - [ ] Hai cảnh phụ: Vườn sen / Hoa đăng, có chuyển cảnh cinematic
 - [ ] Visual snapshot QA ở 4 mật độ ghế + 2 kích thước thiết bị
 
@@ -48,6 +52,7 @@
 ## F. QA / nghiệm thu
 - [x] Kiểm tra tĩnh cú pháp JavaScript server/control/overlay/simulator
 - [x] Bổ sung kiểm thử đơn vị cho lựa chọn quà ảo, chống gửi cho user thật, ngưỡng và giới hạn tần suất
+- [x] Thêm `live/stage-geometry.test.mjs` cho 4 mật độ, đường đi và sự phù hợp renderer
 - [ ] Chạy đầy đủ npm test trên branch đã pull và kiểm chứng GIF/asset
 - [ ] Quay 30–45 giây từ renderer thật (OBS), không dùng storyboard AI thay thế
 - [ ] UAT, phân tích FPS/latency/độ ổn định và sửa P0/P1
