@@ -80,7 +80,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
     <div>Gõ <b>nam · nữ · sư · ni · tiểu · bà · cao tăng</b> để đổi hình</div>
     <div>🎁 Tặng quà được <b>xướng tên hồi hướng</b></div>
   </div>
-  <div id="merit" class="card ui"><h3>✦ Công Đức ✦</h3><ol id="meritList"><li class="empty">Chưa có</li></ol></div>
+  <div id="merit" class="card ui"><h3>✦ Lời tri ân ✦</h3><ol id="meritList"><li class="empty">Chưa có</li></ol></div>
   <div id="chant" class="ui"><h4>✦ TỤNG KINH ĐỊNH KỲ ✦</h4><p id="chantText"></p></div>
   <div id="gift" class="ui"><div class="who" id="giftWho"></div><div class="what" id="giftWhat"></div><div class="pray" id="giftPray"></div><div class="prestige" id="giftPrestige"></div></div>
   <button id="unmute">🔔 Bấm để bật âm thanh</button>
@@ -131,6 +131,7 @@ function layout(c){
 }
 const visitors = new Map();  // id -> visitor
 const cinematicQ=[]; let cinematicUntil=0;
+const MAX_CINEMATIC_QUEUE=8;
 let order = [];               // ids in seating order
 function reseat(){
   order = order.filter(id => visitors.has(id));
@@ -161,17 +162,24 @@ function renderMerit(){
 setInterval(()=>{ const s=Math.floor((Date.now()-startedAt)/1000); document.getElementById('timer').textContent=[s/3600,s/60%60,s%60].map(x=>String(Math.floor(x)).padStart(2,'0')).join(':'); },1000);
 let giftHide=null;
 function showGift(m){
-  if (m.event?.level>=2){
-    const now=Date.now(); if (now < cinematicUntil){ cinematicQ.push(m); return; }
-    cinematicUntil=now+(m.event.durationMs||3600)+350;
+  const now=Date.now();
+  if(now < cinematicUntil){
+    // Never allow a low-cost streak to cover an active premium dedication.
+    if((m.event?.level||0)<2)return;
+    const repeat=cinematicQ.find(e=>e.id===m.id && e.giftName===m.giftName);
+    if(repeat){repeat.count+=m.count;repeat.coins+=m.coins;repeat.total=m.total;return;}
+    if(cinematicQ.length>=MAX_CINEMATIC_QUEUE)cinematicQ.shift();
+    cinematicQ.push({...m});return;
   }
+  const duration=m.event?.durationMs||3600;
+  cinematicUntil=now+duration;
   document.getElementById('giftWho').textContent = '@'+m.name;
   const giftEl=document.getElementById('gift'); giftEl.classList.toggle('high',(m.event?.level||0)>=2);giftEl.classList.toggle('special',(m.event?.level||0)>=4);
   document.getElementById('giftPrestige').textContent=m.event?.title||'';
-  document.getElementById('giftWhat').textContent = `thành tâm dâng ${m.giftName}${m.count>1?' ×'+m.count:''} · công đức ${m.total}`;
+  document.getElementById('giftWhat').textContent = `thành tâm dâng ${m.giftName}${m.count>1?' ×'+m.count:''} · điểm tri ân ${m.total}`;
   document.getElementById('giftPray').textContent = '“' + m.prayer + '”';
   document.getElementById('chant').classList.remove('show');
-  const el=document.getElementById('gift'); el.classList.add('show'); clearTimeout(giftHide); giftHide=setTimeout(()=>{el.classList.remove('show');cinematicUntil=0;if(cinematicQ.length) showGift(cinematicQ.shift());}, m.event?.durationMs|| (m.tier>=3?9000:6500));
+  const el=document.getElementById('gift'); el.classList.add('show'); clearTimeout(giftHide); giftHide=setTimeout(()=>{el.classList.remove('show');cinematicUntil=0;if(cinematicQ.length) showGift(cinematicQ.shift());},duration);
 }
 let chantHide=null;
 function showChant(text){ document.getElementById('chantText').textContent=text; const el=document.getElementById('chant'); el.classList.add('show'); clearTimeout(chantHide); chantHide=setTimeout(()=>el.classList.remove('show'), 14000); }
