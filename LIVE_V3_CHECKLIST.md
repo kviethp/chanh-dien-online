@@ -1,6 +1,6 @@
 # CHECKLIST – Chánh Điện Online 3.0
 
-> Tiến độ được đánh dấu khi code tương ứng đã được cập nhật và kiểm tra cơ bản. **Không đánh dấu hoàn thành mỹ thuật/production nếu chưa nghiệm thu trên OBS.** 
+> Tiến độ được đánh dấu khi code tương ứng đã được cập nhật và kiểm tra cơ bản. Kết quả QA và blocker tại `docs/V3_QA_RUNBOOK.md`. **Không đánh dấu hoàn thành mỹ thuật/production nếu chưa nghiệm thu trên OBS.** 
 > Phát triển trên nhánh `feature/v3-hardening-and-qa` (PR riêng dựa trên nhánh sân khấu V3), PR review trước khi merge vào `main`.
 
 ## A. Kiểm tra hiện trạng / chuẩn hoá
@@ -19,7 +19,8 @@
 - [ ] Visual QA đường đi nhân vật, va chạm và seat map trên browser/OBS
 - [ ] Hai cảnh phụ: Vườn sen / Hoa đăng, có chuyển cảnh cinematic
 - [x] Tích hợp bước tự chụp overlay 24/36/64/100 trong bài test browser (chưa chạy)
-- [ ] Xem và duyệt kết quả visual snapshot ở 4 mật độ ghế + 2 kích thước thiết bị
+- [x] Chụp và kiểm tra bước đầu snapshot 24/36/64/100 + 36/100 Full HD
+- [ ] Phê duyệt chất lượng UI theo master concept trên 2 kích thước; nickname 100 người còn khó đọc
 
 ## C. Nhân vật và chuyển động
 - [ ] Rig/atlas đồng bộ 7 skin; artist-authored outfits có ít nhất 8 trạng thái
@@ -27,7 +28,9 @@
 - [x] Premium SVG, sprite dye + hoa văn chạy theo các khung hiện có
 - [ ] Animation chân/tay thực với chắp tay, dâng hoa, tặng đèn, đứng dậy, rời điện
 - [ ] Tên nickname tránh chồng, camera theo hàng và vật phẩm không che mặt
-- [ ] Kiểm thử hoạt ảnh 100 nhân vật / 30 FPS trên cấu hình máy live xác định
+- [x] Đo FPS tham khảo trên Chromium CI 100 người: 13,5 FPS baseline, dưới mục tiêu (không phải OBS)
+- [x] Tích hợp cache nền/chỗ ngồi và cache nhãn tên trong renderer (chờ đo lại)
+- [ ] Đo đạt >=30 FPS ổn định với 100 nhân vật trên máy phát TikTok LIVE/OBS thực tế
 
 ## D. Gift events
 - [x] Danh mục ánh xạ 21 gift + tier 500 / 1000 / 3000 / 10000
@@ -51,7 +54,8 @@
 - [x] Mặc định chỉ offline; khi có kết nối LIVE muốn hiển thị demo phải bật tùy chọn rõ ràng
 - [x] Kiểm tra cú pháp JavaScript giao diện admin, overlay và server sau nâng cấp
 - [x] Viết bài test Chromium mô phỏng Admin/overlay và 4 mật độ ghế tại `live/browser-smoke.mjs`
-- [ ] Chạy đạt bài test Chromium trong CI; duyệt UX điện thoại qua screenshot
+- [x] Chạy đạt bài test Chromium trong CI – Actions #41325391901 và #41325873371 PASS
+- [ ] Duyệt UX điện thoại/OBS theo screenshot master concept và các trường hợp gift cao
 - [ ] Kiểm thử luồng 100 người và hàng đợi 21 gift end-to-end
 
 ## F. QA / nghiệm thu
@@ -59,8 +63,11 @@
 - [x] Bổ sung kiểm thử đơn vị cho lựa chọn quà ảo, chống gửi cho user thật, ngưỡng và giới hạn tần suất
 - [x] Thêm `live/stage-geometry.test.mjs` cho 4 mật độ, đường đi và sự phù hợp renderer
 - [x] Tạo GitHub Actions chạy `npm ci`, `npm test`, Chromium và xuất ảnh QA
-- [ ] CI báo PASS cho `npm test` + Chromium và xác minh asset/ảnh chụp (chưa có kết quả; repository GitHub Actions chưa có workflow run)
-- [ ] Quay 30–45 giây từ renderer thật (OBS), không dùng storyboard AI thay thế
+- [x] Xác nhận `npm test` + Chromium PASS và lưu screenshot 24/36/64/100 (đợt CI #41325873371)
+- [x] Có browser recording thật 42,68 giây (không phải video AI)
+- [ ] CI PASS ở HEAD cuối sau tối ưu FPS; duyệt screenshot và video trước release
+- [x] Quay video 42,68 giây từ chính renderer Chromium trong CI để review logic
+- [ ] Quay 30–45 giây từ OBS/TikTok LIVE Studio, có kiểm thử TTS/âm thanh và so sánh concept
 - [ ] UAT, phân tích FPS/latency/độ ổn định và sửa P0/P1
 - [ ] Ready for Review → merge vào main sau khi chấp thuận
 
