@@ -99,7 +99,35 @@ button.red{background:var(--red);border-color:#b84a33}
   </section>
 
   <section class="card">
-    <h2>3 · Giọng đọc · Nhạc · Chuông mõ</h2>
+    <h2>3 · Admin Studio — người và quà mô phỏng</h2>
+    <p class="hint"><strong>CHẾ ĐỘ MÔ PHỎNG:</strong> Nhân vật/quà tạo tại đây luôn gắn nhãn MẪU, không tính vào người xem và quà tặng TikTok thật.</p>
+    <label class="check"><input type="checkbox" id="demoOnAir"> Cho phép trình diễn có gắn nhãn MÔ PHỎNG khi kết nối TikTok</label>
+    <p class="hint">Mặc định các thao tác chỉ dùng khi chưa kết nối LIVE. Tích chọn để dùng ở phiên có người thật và giữ nhãn nhận diện công khai.</p>
+    <div class="row">
+      <label>Pháp danh mẫu<input id="demoName" maxlength="18" value="An Nhiên"></label>
+      <label>Nhân vật<select id="demoSkin"><option value="woman">Nữ</option><option value="man">Nam</option><option value="granny">Lớn tuổi</option><option value="monk">Sư</option><option value="nun">Ni</option><option value="child">Tiểu</option><option value="master">Cao tăng</option></select></label>
+      <button id="demoCreate" class="primary">Thêm người mẫu</button>
+    </div>
+    <label>Chọn nhân vật mẫu để tặng quà<select id="demoTarget"><option value="">Chưa có người mẫu</option></select></label>
+    <div class="row">
+      <label>Quà mẫu<select id="demoGift"><option value="Hoa hồng" data-points="1">Hoa hồng (1 điểm mô phỏng)</option><option value="TikTok" data-points="1">TikTok (1 điểm mô phỏng)</option><option value="GG" data-points="1">GG (1 điểm mô phỏng)</option><option value="Heart Me" data-points="1">Heart Me (1 điểm mô phỏng)</option><option value="Finger Heart" data-points="5">Finger Heart (5 điểm mô phỏng)</option><option value="Rosa" data-points="10">Rosa (10 điểm mô phỏng)</option><option value="Perfume" data-points="20">Perfume (20 điểm mô phỏng)</option><option value="Doughnut" data-points="30">Doughnut (30 điểm mô phỏng)</option><option value="Paper Crane" data-points="99">Paper Crane (99 điểm mô phỏng)</option><option value="Confetti" data-points="100">Confetti (100 điểm mô phỏng)</option><option value="Butterfly for You" data-points="299">Butterfly for You (299 điểm mô phỏng)</option><option value="Corgi" data-points="299">Corgi (299 điểm mô phỏng)</option><option value="Money Gun" data-points="500">Money Gun (500 điểm mô phỏng)</option><option value="Swan" data-points="699">Swan (699 điểm mô phỏng)</option><option value="Galaxy" data-points="1000">Galaxy (1000 điểm mô phỏng)</option><option value="Fireworks" data-points="1088">Fireworks (1088 điểm mô phỏng)</option><option value="Whale Diving" data-points="2150">Whale Diving (2150 điểm mô phỏng)</option><option value="Meteor Shower" data-points="3000">Meteor Shower (3000 điểm mô phỏng)</option><option value="Interstellar" data-points="10000">Interstellar (10000 điểm mô phỏng)</option><option value="Lion" data-points="29999">Lion (29999 điểm mô phỏng)</option><option value="TikTok Universe" data-points="44999">TikTok Universe (44999 điểm mô phỏng)</option></select></label>
+      <label>Số lượng<input id="demoQuantity" type="number" min="1" max="99" value="1"></label>
+      <button id="demoSendGift" class="gold">Phát quà ảo và hiệu ứng</button>
+    </div>
+    <h3>Kịch bản tự động (offline/demo)</h3>
+    <div class="row">
+      <button data-scenario="welcome">6 người đi vào</button>
+      <button data-scenario="flowers">6 hoa hồng</button>
+      <button data-scenario="premium">4 quà VIP</button>
+      <button data-scenario="crowd">36 người</button>
+      <button id="demoStop">Dừng kịch bản</button>
+    </div>
+    <div class="row"><button id="demoRemove">Xóa người mẫu đã chọn</button><button id="demoReset" class="red">Xóa tất cả mô phỏng</button></div>
+    <div id="demoStatistics" class="hint">Quà ảo: 0 · Người mẫu: 0</div>
+  </section>
+
+  <section class="card">
+    <h2>4 · Giọng đọc · Nhạc · Chuông mõ</h2>
     <div class="row">
       <label>Giọng<select id="voice"><option value="vi-VN-NamMinhNeural">Nam Minh (nam)</option><option value="vi-VN-HoaiMyNeural">Hoài My (nữ)</option></select></label>
       <label>Độ trầm (Hz)<input id="pitch" type="number" step="1" value="-18"></label>
@@ -145,10 +173,15 @@ function readSettings(){ const o={}; for (const k of SETTING_IDS){ const el=$(k)
 const people = new Map();
 function renderPeople(){
   const tb=$('peopleBody'); tb.innerHTML='';
-  const list=[...people.values()].sort((a,b)=>b.coins-a.coins || a.name.localeCompare(b.name));
+  const list=[...people.values()].sort((a,b)=>(b.demo?b.demoCoins||0:b.coins)-(a.demo?a.demoCoins||0:a.coins) || a.name.localeCompare(b.name));
   if (!list.length){ tb.innerHTML='<tr><td class="hint">Chưa có ai</td><td></td></tr>'; }
-  list.forEach((p,i)=>{ const tr=document.createElement('tr'); const a=document.createElement('td'); a.textContent=`${String(i+1).padStart(2,'0')}  ${p.name}`; const b=document.createElement('td'); b.textContent=p.coins? p.coins+' ✧':''; tr.append(a,b); tb.append(tr); });
-  $('cnt').textContent = `${people.size} người`;
+  list.forEach((p,i)=>{ const tr=document.createElement('tr'); const a=document.createElement('td'); a.textContent=`${String(i+1).padStart(2,'0')}  ${p.demo?'[MẪU] ':''}${p.name}`; const b=document.createElement('td'); b.textContent=p.demo?(p.demoCoins||0)+' ảo':p.coins? p.coins+' thật':''; tr.append(a,b); tb.append(tr); });
+  const demos=[...people.values()].filter(v=>v.demo),real=people.size-demos.length;
+  $('cnt').textContent = `${real} thật · ${demos.length} mẫu`;
+  const selector=$('demoTarget'),current=selector.value;selector.innerHTML='';
+  for(const d of demos){const opt=document.createElement('option');opt.value=d.id;opt.textContent=d.name;selector.append(opt);}
+  if(demos.some(d=>d.id===current))selector.value=current;
+  $('demoStatistics').textContent='Người thật: '+real+' · Người mẫu: '+demos.length+' · Điểm quà ảo: '+demos.reduce((n,d)=>n+(d.demoCoins||0),0);
 }
 function setTT(st){
   const el=$('tt'); el.className='chip ' + (st.status==='connected'?'ok':st.status==='error'?'bad':'');
@@ -160,13 +193,14 @@ function connect(){
   ws.onclose = () => { $('srv').textContent='Server: mất kết nối'; $('srv').className='chip bad'; setTimeout(connect, 2000); };
   ws.onmessage = e => {
     const m = JSON.parse(e.data);
-    if (m.t==='state'){ fillSettings(m.settings); setTT(m.tiktok); people.clear(); for (const v of m.viewers) people.set(v.id,v); renderPeople(); }
+    if (m.t==='state'){ $('demoOnAir').checked=!!m.demoOnAir;fillSettings(m.settings); setTT(m.tiktok); people.clear(); for (const v of m.viewers) people.set(v.id,v); renderPeople(); }
     else if (m.t==='logs'){ $('log').textContent=''; m.lines.forEach(logLine); }
     else if (m.t==='log') logLine(m.line);
     else if (m.t==='tiktok') setTT(m);
     else if (m.t==='join'){ people.set(m.v.id,m.v); renderPeople(); }
     else if (m.t==='leave'){ people.delete(m.id); renderPeople(); }
-    else if (m.t==='gift'){ const p=people.get(m.id); if(p){ p.coins=m.total; renderPeople(); } }
+    else if (m.t==='gift'){ const p=people.get(m.id); if(p){ if(m.demo)p.demoCoins=m.total;else p.coins=m.total; renderPeople(); } }
+    else if(m.t==='demoMode')$('demoOnAir').checked=!!m.enabled;
     else if (m.t==='bots') $('btnBots').textContent = m.on ? 'Tắt bot' : 'Bật bot';
   };
 }
@@ -186,6 +220,17 @@ $('btnSay').onclick = () => send('say', { text: $('sayText').value });
 $('btnChant').onclick = () => send('chant');
 $('btnBell').onclick = () => send('bell');
 $('btnMo').onclick = () => send('mo');
+$('demoCreate').onclick=()=>send('demoCreate',{name:$('demoName').value,skin:$('demoSkin').value});
+$('demoOnAir').onchange=()=>send('demoOnAir',{enabled:$('demoOnAir').checked});
+$('demoSendGift').onclick=()=>{
+ const gift=$('demoGift'),option=gift.selectedOptions[0];
+ if(!$('demoTarget').value)return;
+ send('demoGift',{id:$('demoTarget').value,gift:gift.value,value:Number(option?.dataset.points||1),count:Number($('demoQuantity').value||1)});
+};
+$('demoRemove').onclick=()=>send('demoRemove',{id:$('demoTarget').value});
+$('demoReset').onclick=()=>send('demoReset');
+$('demoStop').onclick=()=>send('demoStop');
+document.querySelectorAll('[data-scenario]').forEach(btn=>btn.onclick=()=>send('demoScenario',{scenario:btn.dataset.scenario}));
 for (const k of SETTING_IDS) $(k).addEventListener('change', () => send('settings', { settings: readSettings() }));
 </script>
 </body>
