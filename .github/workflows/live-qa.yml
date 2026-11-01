@@ -21,8 +21,8 @@ jobs:
           cache-dependency-path: live/package-lock.json
       - run: npm ci
       - run: npm test
-      - name: Inspect safe ws release integrity
-        run: npm view ws@8.22.1 dist.integrity
+      - name: Fail on high-severity dependency advisories
+        run: npm audit --audit-level=high
       - name: Collect dependency audit evidence
         if: always()
         run: mkdir -p qa-artifacts && npm audit --json > qa-artifacts/npm-audit.json || true
