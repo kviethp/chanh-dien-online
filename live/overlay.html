@@ -185,7 +185,7 @@ function startAudio(){
   master = AC.createGain(); master.gain.value=.9; master.connect(AC.destination);
   musicGain = AC.createGain(); musicGain.gain.value=settings.music?.5:0; musicGain.connect(master);
   sfx = AC.createGain(); sfx.gain.value=1; sfx.connect(master);
-  nextTrack(); scheduleMo(); bell();
+  nextTrack(); scheduleMo(); bell(); playTTS();
 }
 function nextTrack(){
   if (musicEl){ musicEl.pause(); }
@@ -208,12 +208,12 @@ function mo(){
 let moTimer=null; function scheduleMo(){ clearInterval(moTimer); if (AC && settings.mo) moTimer=setInterval(mo, 60000/Math.max(20,settings.moBpm||52)); }
 // server-made voice lines play one after another
 const ttsQ=[]; let ttsPlaying=false;
-function queueTTS(url, onStart){ ttsQ.push({url,onStart}); playTTS(); }
+function queueTTS(url, onStart){ if(ttsQ.length>=20) ttsQ.shift(); ttsQ.push({url,onStart}); playTTS(); }
 function playTTS(){
   if (ttsPlaying || !ttsQ.length || !AC) return; ttsPlaying=true;
   const {url,onStart}=ttsQ.shift(); const el=new Audio(url); const src=AC.createMediaElementSource(el); const g=AC.createGain(); g.gain.value=1.25; src.connect(g); g.connect(master);
   el.onplay=()=>{ duck(true); onStart&&onStart(); }; el.onended=el.onerror=()=>{ duck(false); ttsPlaying=false; setTimeout(playTTS,350); };
-  el.play().catch(()=>{ ttsPlaying=false; });
+  el.play().catch(()=>{ duck(false); ttsPlaying=false; setTimeout(playTTS,350); });
 }
 
 /* ======================= effects ======================= */
