@@ -44,5 +44,18 @@ test('layer assets exist and are not baked seat positions',async()=>{
  }
  const overlay=readFileSync(new URL('./overlay.html',import.meta.url),'utf8');
  assert.match(overlay,/stage-scene\.js/);
- assert.match(overlay,/stageScene\.drawSeats\(ctx,seats\)/);
+ assert.match(overlay,/stageScene\.drawBackground\(ctx,A\.hall,seats\)/);
+});
+
+test('background cache is bounded across four seat configurations', async()=>{
+ const {readFileSync}=await import('node:fs');
+ const src=readFileSync(new URL('./stage-scene.js',import.meta.url),'utf8');
+ const {runInNewContext}=await import('node:vm');
+ class ImageStub{constructor(){this.complete=true;this.naturalWidth=720;}}
+ class ContextStub{drawImage(){} save(){} restore(){}}
+ const sandbox={window:{},Image:ImageStub,document:{createElement:()=>({width:0,height:0,getContext:()=>new ContextStub()})}};
+ runInNewContext(src,sandbox);
+ const stage=sandbox.window.StageScene,context=new ContextStub(),hall=new ImageStub();
+ for(const cap of [24,36,64,100])stage.drawBackground(context,hall,stage.layout(cap));
+ assert.ok(stage.cacheSize()<=2);
 });
