@@ -144,7 +144,7 @@ function removeVisitor(id){ visitors.delete(id); reseat(); }
 // An unbounded event queue would otherwise flood the stage after a gift streak.
 function deliverGift(v,m){
   giftFx(v,m.tier,m.event);
-  premium.giftReceived(v,m.event);
+  premium.giftReceived(v,m.event,undefined,visitors.size);
   cinematicFX.trigger(v,m.event);
   showGift(m);
 }
@@ -415,8 +415,8 @@ function frame(now){
     ctx.save(); ctx.globalAlpha=Math.min(1,p.life-p.t); ctx.translate(p.x,p.y);
     if (p.heart){ ctx.fillStyle='#ff5a7a'; ctx.font='34px serif'; ctx.textAlign='center'; ctx.fillText('♥',0,0); } else { ctx.rotate(Math.sin(p.t*2+i)*.6); sprite(A.petal,0,0,p.s,.5); }
     ctx.restore(); }
-  premium.drawEffects(ctx,dt);
-  cinematicFX.render(ctx,now,reducedMotion);
+  premium.drawEffects(ctx,dt,visitors.size);
+  cinematicFX.render(ctx,now,reducedMotion||visitors.size>=80);
   stageScene.drawForeground(ctx);
 }
 /* lantern ambience: every few minutes the hall lanterns brighten for a moment */
