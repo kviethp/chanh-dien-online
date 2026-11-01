@@ -1,0 +1,302 @@
+[
+  {
+    "path": "characters/child.webp",
+    "bytes": 26746,
+    "gitsha": "6a74a40046cde304a46346ee9e34b231530f182d"
+  },
+  {
+    "path": "characters/child_atlas.webp",
+    "bytes": 109002,
+    "gitsha": "3f5cc29caa7c2a5c3792f3dcec6480b2b05e3207"
+  },
+  {
+    "path": "characters/elder.webp",
+    "bytes": 34078,
+    "gitsha": "42d4a52510a565c693a2fca08ec0dfb108754f8f"
+  },
+  {
+    "path": "characters/elder_atlas.webp",
+    "bytes": 89656,
+    "gitsha": "14f2620248fcb60a32676a5cf5cddcb56d035eaa"
+  },
+  {
+    "path": "characters/man.webp",
+    "bytes": 33278,
+    "gitsha": "1caf76eec03b2d15c7c94c6924713a72834271b1"
+  },
+  {
+    "path": "characters/man_atlas.webp",
+    "bytes": 87076,
+    "gitsha": "5ba83c9f561f0162d6c237b65626fd6095968417"
+  },
+  {
+    "path": "characters/master.webp",
+    "bytes": 49726,
+    "gitsha": "3b52219667efd53e607f3a9447bed96771ea5b2e"
+  },
+  {
+    "path": "characters/master_atlas.webp",
+    "bytes": 91266,
+    "gitsha": "32d35ab7fe873870ed01930e4ca62f4986a62068"
+  },
+  {
+    "path": "characters/monk.webp",
+    "bytes": 47206,
+    "gitsha": "db61e8a365922075f5a01cce0227318a3c3b2050"
+  },
+  {
+    "path": "characters/monk_atlas.webp",
+    "bytes": 91874,
+    "gitsha": "a627121b30ecb784c353c5ab52f960b4cb1455c9"
+  },
+  {
+    "path": "characters/novice.webp",
+    "bytes": 35080,
+    "gitsha": "0d17ed736de76d3a851c2002b1dfa14841bbed92"
+  },
+  {
+    "path": "characters/novice_atlas.webp",
+    "bytes": 74906,
+    "gitsha": "e17bf48b9fe77fe61e11efbd8f721465398ffcea"
+  },
+  {
+    "path": "characters/seated.webp",
+    "bytes": 77068,
+    "gitsha": "93ae44dcc3480f7bdc1ec75f76d4a44db0e43a04"
+  },
+  {
+    "path": "characters/woman.webp",
+    "bytes": 32570,
+    "gitsha": "3e574fb0bcf7950b9ca22a6990f2b732ec34a3a8"
+  },
+  {
+    "path": "characters/woman_atlas.webp",
+    "bytes": 101746,
+    "gitsha": "053d1ac451553a4fd5ef5b84e45bf9e4200fdfb3"
+  },
+  {
+    "path": "effects/floral_halo.webp",
+    "bytes": 74442,
+    "gitsha": "14c4e74d2f74d9d244aba0225a4ca50e8656829d"
+  },
+  {
+    "path": "effects/golden_beam.webp",
+    "bytes": 51718,
+    "gitsha": "b25d47d1790d732aeae3794d351953dcb40b0a93"
+  },
+  {
+    "path": "effects/golden_crown.webp",
+    "bytes": 22932,
+    "gitsha": "be9c7125d6b52909bc11e6e09220d3a6adf957ac"
+  },
+  {
+    "path": "effects/golden_trail.webp",
+    "bytes": 50060,
+    "gitsha": "f059a0fb12ec9a6ff14c07d74eaf4c0b6c69a653"
+  },
+  {
+    "path": "effects/legend_aura.webp",
+    "bytes": 69344,
+    "gitsha": "f3de6671417aa2f6d99a4f0c539b77fe9b377052"
+  },
+  {
+    "path": "effects/legend_robe.webp",
+    "bytes": 72306,
+    "gitsha": "5328866b7a2887d4604861f3d40f1c429f79c3b5"
+  },
+  {
+    "path": "effects/lotus_throne.webp",
+    "bytes": 55948,
+    "gitsha": "4f84764fb359bd14a67b6efed9357e1281be0641"
+  },
+  {
+    "path": "effects/petal_swirl.webp",
+    "bytes": 64326,
+    "gitsha": "684ca372e61bb66256e9abb0bf35d4f9a78fdd41"
+  },
+  {
+    "path": "effects/thank_you_banner.webp",
+    "bytes": 76086,
+    "gitsha": "7e9eb02ce64aff17072e7a1b034d2d72b7dfd850"
+  },
+  {
+    "path": "garden.webp",
+    "bytes": 584412,
+    "gitsha": "d9728c029e95571cb6dfa2be93a7e999e976bc1c"
+  },
+  {
+    "path": "gift_vfx/butterfly.webp",
+    "bytes": 75528,
+    "gitsha": "06570346b54a6565249607f779b442bc1143ee14"
+  },
+  {
+    "path": "gift_vfx/confetti.webp",
+    "bytes": 58684,
+    "gitsha": "fe30a36ea364c9304c20ecff482aee3af876a109"
+  },
+  {
+    "path": "gift_vfx/corgi.webp",
+    "bytes": 58352,
+    "gitsha": "b5d58ca3072ee679cc1ded45681eee0f390c941c"
+  },
+  {
+    "path": "gift_vfx/crane.webp",
+    "bytes": 63464,
+    "gitsha": "86d4341828001a4173479384c755b2f579972f5e"
+  },
+  {
+    "path": "gift_vfx/donut.webp",
+    "bytes": 69964,
+    "gitsha": "3b0826c797e6436753e07fe9bdbde69fb8341082"
+  },
+  {
+    "path": "gift_vfx/fingerheart.webp",
+    "bytes": 55212,
+    "gitsha": "8c2c04a136a2061a91adfd09dc4dffede65627ea"
+  },
+  {
+    "path": "gift_vfx/fireworks.webp",
+    "bytes": 59208,
+    "gitsha": "52fcf6589f11b7928fc718df03bcb7ba266872c9"
+  },
+  {
+    "path": "gift_vfx/galaxy.webp",
+    "bytes": 62346,
+    "gitsha": "3026e766e62c5b6d2e52ce0f4e32265f719e5f89"
+  },
+  {
+    "path": "gift_vfx/gg.webp",
+    "bytes": 60722,
+    "gitsha": "b571f1bf3ebc631227232b30a7dea17aa4ff69fb"
+  },
+  {
+    "path": "gift_vfx/heart.webp",
+    "bytes": 55122,
+    "gitsha": "09812b4f8120c873ada60473d0803d13e0dc864b"
+  },
+  {
+    "path": "gift_vfx/interstellar.webp",
+    "bytes": 68696,
+    "gitsha": "726a7f283cbef790e5868cfd1b085bd09269504a"
+  },
+  {
+    "path": "gift_vfx/lion.webp",
+    "bytes": 65890,
+    "gitsha": "ab0cd55c10a1ab26d327395bb85588993d541ce1"
+  },
+  {
+    "path": "gift_vfx/meteor.webp",
+    "bytes": 53090,
+    "gitsha": "f147ac761b4a3ca73c744d332339482211097980"
+  },
+  {
+    "path": "gift_vfx/moneygun.webp",
+    "bytes": 55578,
+    "gitsha": "ebe39f4b38388d6503fb63f549f515b3977a7943"
+  },
+  {
+    "path": "gift_vfx/perfume.webp",
+    "bytes": 51628,
+    "gitsha": "8f28fbbe10f79627497eafc27495678b276b1f3b"
+  },
+  {
+    "path": "gift_vfx/rosa.webp",
+    "bytes": 69958,
+    "gitsha": "b6eef860fe7bf533aadfad1938a3b5e32adcfd5e"
+  },
+  {
+    "path": "gift_vfx/rose.webp",
+    "bytes": 58910,
+    "gitsha": "763a55b8424a88e1324a72ea6c2449a2762e2510"
+  },
+  {
+    "path": "gift_vfx/swan.webp",
+    "bytes": 47006,
+    "gitsha": "aa9ab65dd2ba9a8df4c276cff2995101d0a08fd5"
+  },
+  {
+    "path": "gift_vfx/tiktok.webp",
+    "bytes": 55532,
+    "gitsha": "00e051180382c40321224143b283bc313098f00b"
+  },
+  {
+    "path": "gift_vfx/universe.webp",
+    "bytes": 70278,
+    "gitsha": "0f2f5c0630b735a74058a13c89e3a973927fdfd7"
+  },
+  {
+    "path": "gift_vfx/whale.webp",
+    "bytes": 55128,
+    "gitsha": "8301564f57f4632e85fd8b6a23ecaaea19026710"
+  },
+  {
+    "path": "hall.webp",
+    "bytes": 520578,
+    "gitsha": "19a385eb231692f20400c4c00e3b125eb7b11748"
+  },
+  {
+    "path": "lantern_lake.webp",
+    "bytes": 530976,
+    "gitsha": "400261314436d35bcc270ff0f676c4cbd8fc2c43"
+  },
+  {
+    "path": "props/aura.webp",
+    "bytes": 56106,
+    "gitsha": "cb7a88fcfd0ed0f2e6a5250884353f8c2b4ec0d6"
+  },
+  {
+    "path": "props/beads.webp",
+    "bytes": 45144,
+    "gitsha": "ab231720a588b535bbeab3209eeef3dbaf7f1a6e"
+  },
+  {
+    "path": "props/bell.webp",
+    "bytes": 42632,
+    "gitsha": "f754a578f801e693addbabeb5cc74ad3716542ee"
+  },
+  {
+    "path": "props/cushion.webp",
+    "bytes": 32798,
+    "gitsha": "8827bcda0848f4833045a97954aaf26a234d6c01"
+  },
+  {
+    "path": "props/festival_lantern.webp",
+    "bytes": 28876,
+    "gitsha": "9171dddc00f1f9cba57f7391a18da0444ca87a4d"
+  },
+  {
+    "path": "props/gift_banner.webp",
+    "bytes": 31202,
+    "gitsha": "c86694598a037e04c109ac9707fb3b0cc306c3f9"
+  },
+  {
+    "path": "props/gold_trail.webp",
+    "bytes": 29650,
+    "gitsha": "73def559b191a886262f1776aad66e5eba68fff4"
+  },
+  {
+    "path": "props/incense.webp",
+    "bytes": 38940,
+    "gitsha": "f798564b6c74aaee95f08a099c08b113c9006101"
+  },
+  {
+    "path": "props/lotus.webp",
+    "bytes": 36880,
+    "gitsha": "448cd8218de9688a56d551745ba39a49d1966b2d"
+  },
+  {
+    "path": "props/pagoda_lantern.webp",
+    "bytes": 37714,
+    "gitsha": "4faa232d467e1223a10a2afa3b58c0f8ae464450"
+  },
+  {
+    "path": "props/petal_swirl.webp",
+    "bytes": 26962,
+    "gitsha": "906ed42ee95c189c8f6a7348d68c235546c65365"
+  },
+  {
+    "path": "props/scroll.webp",
+    "bytes": 27100,
+    "gitsha": "7fc6f560e18b782dd0bb582c1eb67666328898f8"
+  }
+]
