@@ -69,8 +69,9 @@ function snapshot(){ return { t:'state', settings, viewers:[...viewers.values()]
 function seat(id, name, opts = {}){
   let v = viewers.get(id);
   if (v){ v.lastAt = Date.now(); if (opts.avatar) v.avatar = opts.avatar; return { v, isNew:false }; }
-  if (viewers.size >= seatLimit()){                     // full: the longest-quiet non-donor stands up
-    const quiet = [...viewers.values()].filter(x => x.coins === 0).sort((a,b) => a.lastAt - b.lastAt)[0];
+  if (viewers.size >= seatLimit()){                     // demos may never displace real visitors
+    if(opts.demo)return {v:null,isNew:false};
+    const quiet = [...viewers.values()].filter(x => x.demo || x.coins === 0).sort((a,b) => Number(b.demo)-Number(a.demo) || a.lastAt-b.lastAt)[0];
     if (!quiet) return { v:null, isNew:false };
     viewers.delete(quiet.id); broadcast({ t:'leave', id: quiet.id });
   }
