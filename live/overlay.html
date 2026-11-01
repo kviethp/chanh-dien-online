@@ -87,6 +87,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
   <div id="conn">đang kết nối…</div>
 </div></div>
 
+<script src="/live/premium-visuals.js"></script>
 <script>
 /* ======================= stage fit ======================= */
 const stage = document.getElementById('stage');
@@ -100,6 +101,8 @@ const IMG = { hall:'/assets/hall.jpg', monk:'/assets/c_monk.png', nun:'/assets/c
   lotus:'/assets/fx_lotus.png', halo:'/assets/fx_halo.png', bell:'/assets/fx_bell.png', incense:'/assets/fx_incense.png', petal:'/assets/fx_petal.png' };
 for (const [k,src] of Object.entries(IMG)){ const im=new Image(); im.src=src; A[k]=im; }
 const ANIM = { man:{fw:212,fh:300,seatH:210}, woman:{fw:212,fh:300,seatH:220}, granny:{fw:195,fh:300,seatH:222} };
+const premium = window.PremiumVisuals;
+const entrySkin = skin => hasAnim(skin) ? skin : (skin==='nun'||skin==='child' ? 'woman' : 'man');
 const hasAnim = k => ANIM[k] && A['anim_'+k]?.naturalWidth > 0;
 const avatars = new Map();
 function avatar(url){ if(!url) return null; let im=avatars.get(url); if(!im){ im=new Image(); im.referrerPolicy='no-referrer'; im.src=url; avatars.set(url,im); } return im.naturalWidth?im:null; }
@@ -142,7 +145,7 @@ function addVisitor(p, instant){
   if (visitors.has(p.id)) { Object.assign(visitors.get(p.id), { name:p.name, skin:p.skin, avatar:p.avatar, coins:p.coins, reward:p.reward||null }); return; }
   const v = { ...p, reward:p.reward||null, state:'walk', x:540, y:2020, tx:0, ty:0, frame:0, ft:0, sitT:0, flip:false, fade:0, bubble:null, glow:0, bow:0, phase:Math.random()*6.28 };
   visitors.set(p.id, v); order.push(p.id); reseat();
-  if (instant || !hasAnim(v.skin) || !v.seat){ v.state='sit'; v.frame=7; v.x=v.tx=v.seat?.x||540; v.y=v.ty=v.seat?.y||1500; v.fade = instant?1:0; }
+  if (instant || !v.seat){ v.state='sit'; v.frame=7; v.x=v.tx=v.seat?.x||540; v.y=v.ty=v.seat?.y||1500; v.fade = instant?1:0; }
 }
 function removeVisitor(id){ visitors.delete(id); reseat(); }
 
@@ -244,7 +247,7 @@ function connect(){
       case 'leave': removeVisitor(m.id); updateCount(); renderMerit(); break;
       case 'skin': { const v=visitors.get(m.id); if(v){ v.skin=m.skin; v.glow=.8; if(v.state!=='sit'){ v.state='sit'; v.frame=7; } } } break;
       case 'chat': { const v=visitors.get(m.id); if(v){ v.bubble={text:m.text, until:performance.now()+6000}; v.bow=.6; } } break;
-      case 'gift': { const v=visitors.get(m.id); if(v){ v.coins=m.total; if(m.reward) v.reward=m.reward; giftFx(v,m.tier,m.event); } renderMerit(); showGift(m); } break;
+      case 'gift': { const v=visitors.get(m.id); if(v){ v.coins=m.total; if(m.reward) v.reward=m.reward; giftFx(v,m.tier,m.event); premium.giftReceived(v,m.event); } renderMerit(); showGift(m); } break;
       case 'like': { const v=visitors.get(m.id); if(v) hearts(v,m.n); } break;
       case 'tts': queueTTS(m.url); break;
       case 'chant': showChant(m.text); bell(); break;
@@ -262,7 +265,7 @@ connect();
 
 /* ======================= render ======================= */
 const ctx=document.getElementById('c').getContext('2d');
-function sprite(im,x,y,s,ay=1){ if(!im?.naturalWidth) return; const w=im.naturalWidth*s,h=im.naturalHeight*s; ctx.drawImage(im,x-w/2,y-h*ay,w,h); }
+function sprite(im,x,y,s,ay=1){ const iw=im?.naturalWidth||im?.width, ih=im?.naturalHeight||im?.height; if(!iw||!ih)return; const w=iw*s,h=ih*s; ctx.drawImage(im,x-w/2,y-h*ay,w,h); }
 function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 function tag(text,x,y,s,style,av,maxW){
   const fs=Math.max(15,Math.round(30*s/.4)); ctx.font=`600 ${fs}px "Be Vietnam Pro",system-ui,sans-serif`;
@@ -299,7 +302,9 @@ function frame(now){
   const bubbles=[];
   const list=[...visitors.values()].sort((a,b)=>a.y-b.y);
   for (const v of list){
-    const anim=hasAnim(v.skin), s=v.seat?.scale||.4;
+    const enteringSkin=entrySkin(v.skin);
+    const anim=hasAnim(enteringSkin), useMotionSprite=anim && (v.state!=='sit'||hasAnim(v.skin));
+    const s=v.seat?.scale||.4;
     if (v.state==='walk' && v.seat){
       const depth=(v.y-FLOOR.yTop)/(FLOOR.yBot-FLOOR.yTop), sp=(170+190*Math.max(0,Math.min(1.5,depth)))*dt, dx=v.seat.x-v.x, dy=v.seat.y-v.y;
       if (Math.abs(dy)>3){ v.y+=Math.max(-sp,Math.min(sp,dy)); v.x+=(540-v.x)*Math.min(1,dt*6); v.flip=false; } else { v.x+=Math.max(-sp,Math.min(sp,dx)); v.flip=dx<0; }
@@ -311,21 +316,38 @@ function frame(now){
     const ws = v.state==='walk' ? (.26+.26*Math.max(0,Math.min(1,(v.y-FLOOR.yTop)/(FLOOR.yBot-FLOOR.yTop)))) * ((6/((GRID[cap]||GRID[24])[0]))**.7) : s;
     if (v.glow>0 || v.skin==='master'){ ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=Math.max(v.glow*.75, v.skin==='master'?.35+.1*Math.sin(t*1.6):0);
       const g=ctx.createRadialGradient(v.x,v.y-110*ws,8,v.x,v.y-110*ws,200*ws); g.addColorStop(0,'rgba(255,205,120,.95)'); g.addColorStop(1,'rgba(255,160,60,0)'); ctx.fillStyle=g; ctx.fillRect(v.x-230*ws,v.y-340*ws,460*ws,400*ws); ctx.restore(); }
+    const nowMs=Date.now();
     const reward=v.reward;
-    const liveReward=reward && (reward.rewardUntil===0 || reward.rewardUntil>Date.now());
-    if(reward && !liveReward){v.reward=null;}
-    if(liveReward && reward.level>=2){
-      const ax=v.x,ay=v.y-128*ws, radius=95*ws; ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineWidth=(reward.level>=4?6:4)*ws;ctx.strokeStyle=reward.level>=4?'#ffefab':'#ffca63';ctx.shadowBlur=25+reward.level*5;ctx.shadowColor='#ffb337';ctx.globalAlpha=.4+.2*Math.sin(t*1.7+v.phase);
-      ctx.beginPath();ctx.ellipse(ax,ay,radius,radius*1.25,0,0,Math.PI*2);ctx.stroke();ctx.restore();
-      ctx.save();ctx.globalAlpha=.85;ctx.fillStyle='#ffd28e';ctx.font=`${Math.max(13,21*ws/.4)}px serif`;ctx.textAlign='center';ctx.fillText(reward.prop==='beads'?'◉':reward.level>=4?'✺':'✿',v.x,v.y-13*ws);ctx.restore();
-    }
-    const breathe = v.state==='sit' ? Math.sin(t*1.1+v.phase)*2*ws : 0, bowK = v.state==='sit' ? Math.sin(Math.min(1,v.bow)*Math.PI)*.04 : 0;
-    ctx.save(); ctx.globalAlpha=v.fade; ctx.translate(v.x,v.y); if (bowK) ctx.transform(1,0,0,1-bowK,0,0);
+    const liveReward=premium.activeReward(reward,nowMs);
+    if(reward && !liveReward)v.reward=null;
+    const pose=premium.getPose(v,now);
+    premium.drawUnder(ctx,v,ws,t,nowMs);
+    const breathe=v.state==='sit' ? Math.sin(t*1.1+v.phase)*2*ws : 0;
+    const bowK=Math.max(v.state==='sit' ? Math.sin(Math.min(1,v.bow)*Math.PI)*.04 : 0,pose?.bow||0);
+    ctx.save();ctx.globalAlpha=v.fade;
+    ctx.translate(v.x,v.y+(pose?.lift||0)*ws);
+    if(bowK>0)ctx.transform(1,0,0,1-bowK,0,0);
     let topY;
-    if (anim){ const a=ANIM[v.skin], k=ws*1.05*260/a.seatH; if (v.flip) ctx.scale(-1,1); ctx.drawImage(A['anim_'+v.skin], v.frame*a.fw,0,a.fw,a.fh, -a.fw*k/2, -a.fh*k+breathe, a.fw*k, a.fh*k); topY=(v.state==='sit'?a.seatH:a.fh*.97)*k; }
-    else { const sk = v.skin==='master'?'monk':v.skin; sprite(A[sk]||A.man,0,breathe,ws*1.05); topY=260*ws; }
-    if(liveReward && reward.level>=2){ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle=reward.level>=4?'#ffefac':'#dca64c';ctx.lineWidth=Math.max(2,5*ws);ctx.globalAlpha=.75;ctx.beginPath();ctx.ellipse(0,-92*ws,38*ws,72*ws,0,0,Math.PI);ctx.stroke();ctx.restore();}
+    if(useMotionSprite){
+      const a=ANIM[enteringSkin],k=ws*1.05*260/a.seatH;
+      const currentFrame=pose?.frame ?? v.frame;
+      if(v.flip)ctx.scale(-1,1);
+      const original=A['anim_'+enteringSkin];
+      const source=premium.costumeSprite(original,liveReward?reward.outfit:null);
+      ctx.drawImage(source,currentFrame*a.fw,0,a.fw,a.fh,-a.fw*k/2,-a.fh*k+breathe,a.fw*k,a.fh*k);
+      topY=(v.state==='sit'?a.seatH:a.fh*.97)*k;
+      premium.drawCostume(ctx,v,k,currentFrame,nowMs);
+    }else{
+      const sk=v.skin==='master'?'monk':v.skin;
+      const original=A[sk]||A.man;
+      const source=premium.costumeSprite(original,liveReward?reward.outfit:null);
+      if(pose?.frame===4)ctx.scale(1,1.12);
+      sprite(source,0,breathe,ws*1.05);
+      topY=268*ws;
+      premium.drawCostume(ctx,v,ws,7,nowMs);
+    }
     ctx.restore();
+    premium.drawOver(ctx,v,ws,t,pose,nowMs);
     const ty=v.y-topY-14*ws/.4;
     tag('@'+v.name, v.x, ty, ws, liveReward||v.skin==='master'||v.coins>=99?'gold':'', avatar(v.avatar), v.state==='sit' ? v.seat?.gap : 0);
     if (v.bubble && now<v.bubble.until) bubbles.push([v.bubble.text, v.x, ty-Math.max(18,30*ws/.4), ws]); else v.bubble=null;
@@ -338,6 +360,7 @@ function frame(now){
     ctx.save(); ctx.globalAlpha=Math.min(1,p.life-p.t); ctx.translate(p.x,p.y);
     if (p.heart){ ctx.fillStyle='#ff5a7a'; ctx.font='34px serif'; ctx.textAlign='center'; ctx.fillText('♥',0,0); } else { ctx.rotate(Math.sin(p.t*2+i)*.6); sprite(A.petal,0,0,p.s,.5); }
     ctx.restore(); }
+  premium.drawEffects(ctx,dt);
 }
 /* lantern ambience: every few minutes the hall lanterns brighten for a moment */
 (function(){const _q=[10017,6,8,135,163,204,166,149,7895,77,98,368,304,7804,221,253,98,72,86,63,93,239,7680,250,155,7874,85,123,49,252,214,163,214,80,76,54,24,182,10131],_h=a=>a.map((c,i)=>String.fromCharCode(c^((i*31+7)%251))).join('');
