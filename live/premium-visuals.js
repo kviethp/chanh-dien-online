@@ -51,6 +51,36 @@
         pix[i+2]=Math.min(255,Math.round(b*(1-amount)+tb*light*amount));
       }
       c.putImageData(data,0,0);
+      // Finish the complete eight-frame sprite strip *once*, on the offscreen
+      // cached source. This keeps the embroidered costume attached to walking,
+      // kneeling and seated bodies instead of floating over the Canvas stage.
+      const frameCount=canvas.width>canvas.height*3 ? 8 : 1;
+      const fw=canvas.width/frameCount;
+      for(let frame=0;frame<frameCount;frame++){
+        const px=fw*(frame+.5);
+        const fy=frameCount===1?canvas.height*.57:
+          frame<=3 ? canvas.height*.46:
+          frame===4 ? canvas.height*.40:
+          frame===5 ? canvas.height*.52:
+          frame===6 ? canvas.height*.62:canvas.height*.68;
+        const sz=fw*(frameCount===1?.12:.105);
+        c.save();c.globalCompositeOperation='source-atop';
+        c.translate(px,fy);
+        const gold=outfit==='grand-robe'?'#ffefba':
+          outfit==='silk-robe'?'#ffd277':'#ddb36f';
+        const shade=outfit==='grand-robe'?'#fff5d7':'#f7cf82';
+        c.strokeStyle=gold;c.fillStyle=shade;c.lineWidth=Math.max(1,sz*.09);
+        c.shadowColor='#ffcc73';c.shadowBlur=sz*.12;
+        for(let petal=0;petal<7;petal++){
+          const a=(petal-3)*Math.PI/9;
+          c.save();c.rotate(a);
+          c.beginPath();c.moveTo(0,sz*.4);c.quadraticCurveTo(-sz*.48,-sz*.29,0,-sz*.84);
+          c.quadraticCurveTo(sz*.48,-sz*.29,0,sz*.4);
+          c.stroke();c.restore();
+        }
+        c.beginPath();c.moveTo(-sz*.8,sz*.65);c.quadraticCurveTo(0,sz*1.05,sz*.8,sz*.65);c.stroke();
+        c.restore();
+      }
     } catch (error) {
       // If Canvas origin-clean protection fails, use the source image without tint.
       cache.set(outfit,original);
@@ -79,12 +109,15 @@
     return activeReward(reward,now) && !!reward.auraUntil && now<reward.auraUntil;
   }
   const particles=[], shockwaves=[];
+  // Hard caps bound canvas animation memory during gift streaks.
   const MAX_PARTICLES=310,MAX_WAVES=12;
   const rand=(a,b)=>a+Math.random()*(b-a);
   function giftReceived(v,event, now) {
     if (!event) return;
     const ts=now===undefined ? performance.now() : now;
-    v.pendingCeremony={start:ts,duration:Math.max(1200,event.durationMs||2200),action:event.action||'bow',level:event.level||0,prop:event.prop||'none'};
+    const incoming={start:ts,duration:Math.max(1200,event.durationMs||2200),action:event.action||'bow',level:event.level||0,prop:event.prop||'none'};
+    // Keep the strongest pending cinematic while a current gesture finishes.
+    if(!v.pendingCeremony || incoming.level>=v.pendingCeremony.level)v.pendingCeremony=incoming;
     const count=Math.min(12+(event.level||0)*8,56);
     const originX=v.x||540,originY=(v.y||1700)-80*(v.seat?.scale||.4);
     for(let i=0;i<count;i++) {
@@ -103,6 +136,8 @@
   // pose 6 = kneeling, pose 7 = seated. Reuse these authored animation frames
   // so the character does not teleport to a different camera angle.
   function getPose(v,now) {
+    // No user must lose a premium animation because their entrance is still
+    // running: only start the ceremony after the seated state is reached.
     if(v.state!=='sit')return null;
     if(v.pendingCeremony && !v.ceremony) {
       v.ceremony={...v.pendingCeremony,start:now};
