@@ -123,6 +123,17 @@ button.red{background:var(--red);border-color:#b84a33}
       <button id="demoStop">Dừng kịch bản</button>
     </div>
     <div class="row"><button id="demoRemove">Xóa người mẫu đã chọn</button><button id="demoReset" class="red">Xóa tất cả mô phỏng</button></div>
+    <h3>Giả lập tặng quà tự động</h3>
+    <p class="hint">Dành cho QA/demo. Tất cả sự kiện đều mang nhãn QUÀ ẢO, không cộng doanh thu/người tặng TikTok.</p>
+    <div class="row">
+      <label>Chế độ quà<select id="autoGiftMode"><option value="mixed">Ngẫu nhiên 21 quà</option><option value="small">Quà nhỏ (≤99)</option><option value="premium">Quà cao cấp (≥500)</option><option value="selected">Một món quà chọn ở trên</option></select></label>
+      <label>Người nhận<select id="autoGiftTarget"><option value="random">Ngẫu nhiên người mẫu</option><option value="selected">Người mẫu đang chọn</option></select></label>
+      <label>Nhịp (giây)<input id="autoGiftInterval" type="number" min="1.8" max="15" step=".2" value="5"></label>
+      <label>Số lần tối đa<input id="autoGiftLimit" type="number" min="1" max="60" value="12"></label>
+    </div>
+    <div class="row"><button class="primary" id="autoGiftStart">Chạy quà tự động</button><button id="autoGiftStop">Dừng ngay</button><button id="autoGiftClearLog">Xóa nhật ký quà ảo</button></div>
+    <div id="autoGiftStatus" class="hint" aria-live="polite">Đang dừng · 0 lượt</div>
+    <div id="autoGiftHistory" class="hint" style="max-height:160px;overflow:auto;white-space:pre-wrap">Chưa có quà ảo</div>
     <div id="demoStatistics" class="hint">Quà ảo: 0 · Người mẫu: 0</div>
   </section>
 
@@ -170,6 +181,19 @@ function logLine(s){ const el=$('log'); el.textContent += s + '\n'; el.scrollTop
 const SETTING_IDS = ['voice','pitch','rate','music','mo','autoChant','moBpm','chantEveryMin','title','subtitle','seatMode','joinOnEnter'];
 function fillSettings(s){ for (const k of SETTING_IDS){ const el=$(k); if (!el || s[k]===undefined) continue; if (el.type==='checkbox') el.checked=!!s[k]; else el.value=s[k]; } }
 function readSettings(){ const o={}; for (const k of SETTING_IDS){ const el=$(k); o[k] = el.type==='checkbox' ? el.checked : el.type==='number' ? +el.value : el.value; } return o; }
+function showAutoGiftState(st){
+ if(!st)return;
+ $('autoGiftStatus').textContent=(st.running?'ĐANG PHÁT':'Đã dừng')+' · '+(st.done||0)+' / '+(st.config?.maxEvents||0)+' lượt'+(st.reason?' · '+st.reason:'');
+}
+function appendDemoGift(item){
+ if(!item)return;
+ const box=$('autoGiftHistory');
+ if(box.textContent==='Chưa có quà ảo')box.textContent='';
+ const row=document.createElement('div');
+ row.textContent='[QUÀ ẢO] '+item.name+' · '+item.giftName+' ×'+item.count+' · '+item.coins+' điểm mô phỏng';
+ box.prepend(row);
+ while(box.children.length>50)box.lastElementChild.remove();
+}
 const people = new Map();
 function renderPeople(){
   const tb=$('peopleBody'); tb.innerHTML='';
@@ -193,13 +217,16 @@ function connect(){
   ws.onclose = () => { $('srv').textContent='Server: mất kết nối'; $('srv').className='chip bad'; setTimeout(connect, 2000); };
   ws.onmessage = e => {
     const m = JSON.parse(e.data);
-    if (m.t==='state'){ $('demoOnAir').checked=!!m.demoOnAir;fillSettings(m.settings); setTT(m.tiktok); people.clear(); for (const v of m.viewers) people.set(v.id,v); renderPeople(); }
+    if (m.t==='state'){ $('demoOnAir').checked=!!m.demoOnAir;showAutoGiftState(m.autoGiftState);$('autoGiftHistory').textContent='';(m.demoGiftHistory||[]).forEach(appendDemoGift);fillSettings(m.settings); setTT(m.tiktok); people.clear(); for (const v of m.viewers) people.set(v.id,v); renderPeople(); }
     else if (m.t==='logs'){ $('log').textContent=''; m.lines.forEach(logLine); }
     else if (m.t==='log') logLine(m.line);
     else if (m.t==='tiktok') setTT(m);
     else if (m.t==='join'){ people.set(m.v.id,m.v); renderPeople(); }
     else if (m.t==='leave'){ people.delete(m.id); renderPeople(); }
     else if (m.t==='gift'){ const p=people.get(m.id); if(p){ if(m.demo)p.demoCoins=m.total;else p.coins=m.total; renderPeople(); } }
+    else if(m.t==='giftSimulatorState')showAutoGiftState(m.state);
+    else if(m.t==='demoGiftLog')appendDemoGift(m.item);
+    else if(m.t==='demoGiftLogClear')$('autoGiftHistory').textContent='Chưa có quà ảo';
     else if(m.t==='demoMode')$('demoOnAir').checked=!!m.enabled;
     else if (m.t==='bots') $('btnBots').textContent = m.on ? 'Tắt bot' : 'Bật bot';
   };
@@ -220,6 +247,14 @@ $('btnSay').onclick = () => send('say', { text: $('sayText').value });
 $('btnChant').onclick = () => send('chant');
 $('btnBell').onclick = () => send('bell');
 $('btnMo').onclick = () => send('mo');
+$('autoGiftStart').onclick=()=>send('demoGiftAuto',{options:{
+ mode:$('autoGiftMode').value,target:$('autoGiftTarget').value,
+ targetId:$('demoTarget').value,giftName:$('demoGift').value,
+ intervalMs:Math.round(Number($('autoGiftInterval').value||5)*1000),
+ maxEvents:Number($('autoGiftLimit').value||12)
+}});
+$('autoGiftStop').onclick=()=>send('demoGiftStop');
+$('autoGiftClearLog').onclick=()=>send('demoGiftClearLog');
 $('demoCreate').onclick=()=>send('demoCreate',{name:$('demoName').value,skin:$('demoSkin').value});
 $('demoOnAir').onchange=()=>send('demoOnAir',{enabled:$('demoOnAir').checked});
 $('demoSendGift').onclick=()=>{
