@@ -33,6 +33,22 @@ Chưa live vẫn thử được: dùng **Thử tương tác**, **Đổ người 
 - **Tặng quà**: banner xướng tên, giọng đọc hồi hướng (lấy lời nguyện từ bình luận gần nhất của người đó nếu có), hiệu ứng theo giá trị quà, cộng điểm vào bảng Công Đức.
 - **Thả tim**: tim bay trên đầu nhân vật.
 
+## Nâng cấp LIVE: Gift Cinematics 2.0 (nhánh tính năng)
+
+- Khi người xem bình luận, nhân vật bước qua cửa trước và đi vào hàng ghế theo phối cảnh; nhãn trên đầu hiển thị `@nickname`.
+- Quà tặng được ánh xạ qua `live/gift-engine.mjs`: danh mục 21 loại quà gợi ý, tự nhận diện theo tên. Quà lạ sử dụng hiệu ứng dự phòng theo giá trị.
+- **500–999** diamond/coins sự kiện: High (vòng sáng vàng, viền áo và tràng hạt mô phỏng).
+- **1.000–2.999**: VIP (aura 2 phút, vật phẩm đèn 15 phút, banner có danh hiệu).
+- **3.000–9.999**: Elite (vòng sáng dài hơn và vật phẩm/viền áo duy trì trong phiên LIVE).
+- **Từ 10.000**: Legend (banner đặc biệt, aura tới 5 phút, phần trang trí duy trì trong phiên LIVE).
+- Cinematic có hàng đợi ở overlay, không chồng hai banner quà cao đồng thời. Hiệu ứng này là tri ân thị giác, không đổi quyền tham gia các nghi lễ.
+- Bảng điều khiển có nút **Thử quà cao cấp** (500/1.000/3.000/10.000), không chi tiền thật.
+- Trong `live/`, chạy `npm test` để kiểm thử ngưỡng, mapping và sức chứa ghế.
+
+**Bản nâng cấp mỹ thuật:** 14 SVG vector nền trong suốt được thêm tại `assets/premium/` (4 aura, 4 trang phục/hoa văn, 4 vật phẩm chính, hương và cánh sen). `live/premium-visuals.js` dùng thuật toán đổi màu áo dựa trên sắc độ vải gốc (giữ tóc/da/bồ đoàn), tự bám sprite 8 frame; bổ sung tư thế đứng/cúi/dâng lễ, chuyển động hoa, vòng sáng và sóng ánh sáng. Đồ họa phù hợp overlay 1080×1920. Không đổi sprite gốc hay sử dụng dịch vụ bên ngoài.
+
+**Giới hạn cần nghiệm thu:** Trang phục hiện là tổ hợp nhuộm màu sprite và vector trang trí chạy thực tế, chưa phải 4 bộ sprite 8 frame vẽ tay riêng. Phần nhận diện quà theo tên phụ thuộc TikTok; chưa nghiệm thu một phiên TikTok LIVE/OBS thực. Màu trang phục/vị trí vật phẩm cần xem trên overlay ở các mức 24/36/64/100 ghế.
+
 ## Bảo mật
 
 Dự án được viết để ai tải về chạy cũng an toàn mặc định:

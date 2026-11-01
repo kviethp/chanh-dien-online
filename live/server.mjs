@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
+import { giftEvent, getSeatCapacity } from './gift-engine.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');            // repo root: serves /assets, /live
@@ -29,7 +30,7 @@ const settings = {
   music: true, mo: true, moBpm: 52,
   autoChant: true, chantEveryMin: 3,
   seatMode: 'auto',                  // auto | 24 | 36 | 64 | 100
-  joinOnEnter: false,                // also seat viewers who only enter the room
+  joinOnEnter: true,                 // seat public MEMBER join events when TikTok emits them
   gifts: { readAll: true, minDiamonds: 1 },
 };
 const viewers = new Map();           // id -> { id, name, skin, avatar, coins, joinedAt, lastAt, lastText, lastTextAt, demo }
@@ -39,7 +40,8 @@ const log = [];
 function addLog(s){ const line = `[${new Date().toLocaleTimeString('vi-VN')}] ${s}`; log.push(line); if (log.length > 300) log.shift(); broadcast({ t:'log', line }, 'control'); console.log(line); }
 
 const CAPS = [24, 36, 64, 100];
-function capacity(){ if (settings.seatMode !== 'auto') return +settings.seatMode; const n = viewers.size; return CAPS.find(c => n <= c) || 100; }
+function capacity(){ return getSeatCapacity(settings.seatMode, viewers.size); }
+function seatLimit(){ return settings.seatMode === 'auto' ? 100 : Number(settings.seatMode); }
 
 /* skins: sprites that exist in /assets. Walking strips exist for man / woman / granny. */
 // A comment changes the outfit only when it IS the keyword (≤ 3 words), so "Nam mô A Di Đà Phật" never reads as "nam".
@@ -56,19 +58,19 @@ function skinFromText(t){
 }
 const DEFAULT_SKINS = ['man', 'woman', 'woman', 'man', 'granny'];
 
-function pub(v){ return { id:v.id, name:v.name, skin:v.skin, avatar:v.avatar||'', coins:v.coins, demo:!!v.demo }; }
+function pub(v){ return { id:v.id, name:v.name, skin:v.skin, avatar:v.avatar||'', coins:v.coins, demo:!!v.demo, reward:v.reward||null }; }
 function snapshot(){ return { t:'state', settings, viewers:[...viewers.values()].map(pub), cap: capacity(), startedAt, tiktok: tiktokState }; }
 
 function seat(id, name, opts = {}){
   let v = viewers.get(id);
   if (v){ v.lastAt = Date.now(); if (opts.avatar) v.avatar = opts.avatar; return { v, isNew:false }; }
-  if (viewers.size >= 100){                     // full: the longest-quiet non-donor stands up
+  if (viewers.size >= seatLimit()){                     // full: the longest-quiet non-donor stands up
     const quiet = [...viewers.values()].filter(x => x.coins === 0).sort((a,b) => a.lastAt - b.lastAt)[0];
     if (!quiet) return { v:null, isNew:false };
     viewers.delete(quiet.id); broadcast({ t:'leave', id: quiet.id });
   }
   v = { id, name: (name||id).slice(0, 18), skin: opts.skin || DEFAULT_SKINS[viewers.size % DEFAULT_SKINS.length],
-        avatar: opts.avatar || '', coins: 0, joinedAt: Date.now(), lastAt: Date.now(), demo: !!opts.demo };
+        avatar: opts.avatar || '', coins: 0, joinedAt: Date.now(), lastAt: Date.now(), demo: !!opts.demo, reward: null };
   viewers.set(id, v);
   broadcast({ t:'join', v: pub(v), cap: capacity() });
   return { v, isNew:true };
@@ -92,9 +94,16 @@ function onGift(id, name, giftName, count, diamonds, avatar){
   const coins = Math.max(1, (diamonds || 1) * (count || 1));
   v.coins += coins;
   const prayer = (v.lastText && Date.now() - v.lastTextAt < 90_000 && v.lastText.length > 6) ? v.lastText : pickPrayer();
-  const tier = coins >= 99 ? 3 : coins >= 10 ? 2 : 1;
+  const event = giftEvent(giftName, coins);
+  const tier = event.level >= 4 ? 3 : event.level >= 2 ? 2 : 1;
+  if (event.level >= 2) {
+    const current = v.reward;
+    if (!current || event.level >= current.level || (current.rewardUntil && current.rewardUntil <= Date.now())) {
+      v.reward = { ...event, giftName, since:Date.now() };
+    } else v.reward.auraUntil = Math.max(v.reward.auraUntil || 0, event.auraUntil || 0);
+  }
   const line = `Nam mô A Di Đà Phật. Phật tử ${spoken(v.name)} thành tâm dâng ${giftName}${count > 1 ? ', ' + count + ' lần' : ''}. ${prayer}.`;
-  broadcast({ t:'gift', id, name: v.name, giftName, count, coins, total: v.coins, tier, prayer });
+  broadcast({ t:'gift', id, name: v.name, giftName, count, coins, total: v.coins, tier, prayer, event, reward:v.reward||null });
   if (settings.gifts.readAll || coins >= settings.gifts.minDiamonds) say(line, { tag:'gift', id });
 }
 
@@ -216,7 +225,16 @@ const SETTING_RULES = {
   seatMode: v => ['auto', '24', '36', '64', '100'].includes(String(v)) ? String(v) : 'auto',
 };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(+v || 0)));
-function applySettings(o){ for (const [k, fn] of Object.entries(SETTING_RULES)) if (k in o) settings[k] = fn(o[k]); }
+function applySettings(o){
+  for(const [k,fn] of Object.entries(SETTING_RULES))if(k in o)settings[k]=fn(o[k]);
+  // Keeping 100 avatars after switching to 24 seats leaves 76 invisible.
+  const max=seatLimit();
+  if(viewers.size>max){
+    const evict=[...viewers.values()].sort((a,b)=>a.coins-b.coins||a.lastAt-b.lastAt).slice(0,viewers.size-max);
+    for(const v of evict){viewers.delete(v.id);broadcast({t:'leave',id:v.id});}
+    addLog('Đã điều chỉnh về '+viewers.size+' chỗ ngồi theo cấu hình mới');
+  }
+}
 
 /* ----------------------------------------------------------------- bots */
 let botTimer = null;
