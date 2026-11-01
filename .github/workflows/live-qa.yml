@@ -1,7 +1,5 @@
 name: Chanh Dien LIVE V3 QA
 on:
-  push:
-    branches: ['feature/v3-hardening-and-qa']
   pull_request:
     paths:
       - 'live/**'
