@@ -11,7 +11,7 @@ const GIFT_FX=Object.freeze({
  interstellar:['portal','#C8C0FF'],lion:['guardian','#EBCF91'],universe:['universe','#FFF2C7'],
  generic:['lotus','#F5CF97']
 });
-const running=[],MAX_RUNNING=5,TWO=Math.PI*2;
+const running=[],pending=[],MAX_RUNNING=1,MAX_PENDING=8,TWO=Math.PI*2;
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
 function petal(ctx,x,y,r,color,angle){
  ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.fillStyle=color;
@@ -80,11 +80,19 @@ function trigger(visitor,event,now=performance.now()){
  if(!visitor||!event)return;
  const key=Object.prototype.hasOwnProperty.call(GIFT_FX,event.key)?event.key:'generic';
  const [visual,color]=GIFT_FX[key];
- running.push({visitor,visual,color,level:Number(event.level)||0,start:now,duration:clamp(Number(event.durationMs)||1600,1100,11000),key});
- while(running.length>MAX_RUNNING)running.shift();
+ const next={visitor,visual,color,level:Number(event.level)||0,start:now,
+   duration:clamp(Number(event.durationMs)||1600,1100,11000),key};
+ if(running.length<MAX_RUNNING)running.push(next);
+ else{
+   const repeat=pending.find(e=>e.visitor===visitor&&e.key===key);
+   if(repeat){repeat.level=Math.max(repeat.level,next.level);return;}
+   if(pending.length>=MAX_PENDING)pending.shift();
+   pending.push(next);
+ }
 }
 function render(ctx,now=performance.now(),reduced=false){
+ if(!running.length && pending.length){const next=pending.shift();next.start=now;running.push(next);}
  for(let i=running.length-1;i>=0;i--){const item=running[i],p=(now-item.start)/item.duration;if(p>=1||p<0){running.splice(i,1);continue;}draw(ctx,item,p,now/1000,reduced);}
 }
-root.GiftCinematics=Object.freeze({trigger,render,keys:Object.keys(GIFT_FX),activeCount:()=>running.length,MAX_RUNNING});
+root.GiftCinematics=Object.freeze({trigger,render,keys:Object.keys(GIFT_FX),activeCount:()=>running.length,queuedCount:()=>pending.length,MAX_RUNNING,MAX_PENDING});
 })(window);
