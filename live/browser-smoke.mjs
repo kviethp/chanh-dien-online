@@ -7,7 +7,7 @@ import {chromium} from 'playwright';
 const port=31877, root='http://127.0.0.1:'+port;
 const out=resolve('qa-artifacts');mkdirSync(out,{recursive:true});
 const child=spawn(process.execPath,['server.mjs'],{env:{...process.env,PORT:String(port)},stdio:['ignore','pipe','pipe']});
-let logs='',browser;
+let logs='',browser,contextRef=null,overlayVideo=null;
 for(const p of [child.stdout,child.stderr])p.on('data',buf=>logs+=buf);
 async function until(fn,message,ms=14000){
  const start=Date.now();while(Date.now()-start<ms){try{if(await fn())return;}catch{}await sleep(150);}
@@ -16,8 +16,8 @@ async function until(fn,message,ms=14000){
 try{
  await until(async()=>{const r=await fetch(root+'/live/control.html');return r.ok;},'server');
  browser=await chromium.launch({headless:true,args:['--no-sandbox']});
- const ctx=await browser.newContext({viewport:{width:540,height:960}});
- const errs=[];const ui=await ctx.newPage(),live=await ctx.newPage();
+ const ctx=await browser.newContext({viewport:{width:540,height:960},recordVideo:{dir:out,size:{width:540,height:960}}});contextRef=ctx;
+ const errs=[];const ui=await ctx.newPage(),live=await ctx.newPage();overlayVideo=live.video();
  for(const [name,p] of [['admin',ui],['overlay',live]])p.on('pageerror',e=>errs.push(name+': '+e.message));
  await live.goto(root+'/live/overlay.html');await ui.goto(root+'/live/control.html');
  await until(()=>ui.locator('#srv').innerText().then(t=>t.includes('đang chạy')),'control connected');
@@ -26,6 +26,7 @@ try{
  await live.locator('#unmute').click();
  await until(()=>live.locator('#unmute').count().then(x=>x===0),'audio activated');
  const captures=[];
+ let ciApproxFps100=null;
  // Capture a clean hall without an older gift banner or FX obscuring the scene.
  for(const [cap,amount] of [[24,15],[36,36],[64,64],[100,100]]){
    await ui.locator('#seatMode').selectOption(String(cap));
@@ -35,6 +36,17 @@ try{
    const path=resolve(out,'overlay_'+cap+'.png');await live.screenshot({path});
    const valid=await live.evaluate(expected=>window.StageScene?.layout(expected).length===expected,cap);
    if(!valid)throw Error('wrong layout '+cap);
+   if(cap===100){
+     await live.bringToFront();
+     ciApproxFps100=await live.evaluate(()=>new Promise(resolve=>{
+       let count=0,first=null;
+       function sample(t){if(first===null)first=t;count++;
+         if(t-first>=3500)resolve(Math.round((count-1)*1000/(t-first)*10)/10);
+         else requestAnimationFrame(sample);
+       }
+       requestAnimationFrame(sample);
+     }));
+   }
    captures.push({cap,amount,path});
    if(cap===36||cap===100) {
      await live.setViewportSize({width:1080,height:1920});
@@ -63,9 +75,13 @@ try{
  await live.waitForTimeout(1000);
  await live.screenshot({path:resolve(out,'premium-gift.png')});
  if(errs.length)throw Error('Page errors: '+errs.join('; '));
- const report={passed:true,captures,errors:errs};writeFileSync(resolve(out,'report.json'),JSON.stringify(report,null,2));
+ const report={passed:true,captures,errors:errs,ciApproxFps100,video:'overlay-demo.webm'};writeFileSync(resolve(out,'report.json'),JSON.stringify(report,null,2));
  console.log('BROWSER_SMOKE_PASS',JSON.stringify(report));
 }catch(e){
  writeFileSync(resolve(out,'error.txt'),String(e.stack||e)+'\n'+logs);
  console.error('BROWSER_SMOKE_FAIL',e.stack||e);process.exitCode=1;
-}finally{await browser?.close();child.kill();}
+}finally{
+ try{await contextRef?.close();if(overlayVideo)await overlayVideo.saveAs(resolve(out,'overlay-demo.webm'));}
+ catch(e){console.warn('Video export:',e.message);}
+ await browser?.close();child.kill();
+}
