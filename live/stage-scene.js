@@ -25,6 +25,29 @@
    ctx.drawImage(imgs.cushion,seat.x-width/2,seat.y-height*.57,width,height);
   }
  }
+ // Pre-render immutable hall + floor + empty cushions once per seat mode.
+ // This removes 24-100 individual cushions and two full-size backgrounds from
+ // every animation frame. Keep a small LRU to bound offscreen memory usage.
+ const backdrops=new Map();
+ function drawBackground(ctx,hall,seats){
+  const cap=seats?.length||24;
+  let cached=backdrops.get(cap);
+  if(cached){backdrops.delete(cap);backdrops.set(cap,cached);ctx.drawImage(cached,0,0);return;}
+  const ready=hall?.complete&&hall.naturalWidth>0&&imgs.floor.complete&&imgs.floor.naturalWidth>0
+    &&imgs.cushion.complete&&imgs.cushion.naturalWidth>0;
+  if(ready){
+   const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;
+   const p=canvas.getContext('2d',{alpha:false});
+   p.drawImage(hall,0,0,1080,1920);
+   drawFloor(p);drawSeats(p,seats);
+   backdrops.set(cap,canvas);
+   while(backdrops.size>2)backdrops.delete(backdrops.keys().next().value);
+   ctx.drawImage(canvas,0,0);
+  }else{
+   if(hall?.naturalWidth)ctx.drawImage(hall,0,0,1080,1920);
+   drawFloor(ctx);drawSeats(ctx,seats);
+  }
+ }
  function drawForeground(ctx){paint(ctx,imgs.front);}
- g.StageScene=Object.freeze({layout,drawFloor,drawSeats,drawForeground,images:imgs});
+ g.StageScene=Object.freeze({layout,drawBackground,drawFloor,drawSeats,drawForeground,images:imgs,cacheSize:()=>backdrops.size});
 })(window);
