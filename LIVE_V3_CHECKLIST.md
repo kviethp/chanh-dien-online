@@ -34,15 +34,20 @@
 ## E. Admin — studio mô phỏng minh bạch
 - [x] Mô-đun mô phỏng phân biệt ID mẫu, số liệu quà ảo và người thật
 - [x] Menu admin thêm người mẫu, chọn skin, chọn 21 món quà, số lượng
+- [x] Giả lập tặng quà thủ công cho người mẫu với Gift Engine/animation đúng cấp
+- [x] Giả lập tặng quà tự động: 21 quà, nhóm nhỏ/cao cấp, chọn người nhận, nhịp phát, giới hạn 60 lượt
+- [x] Nút dừng, làm sạch nhật ký sự kiện quà ảo và trạng thái phát trong Admin
 - [x] 4 scenario mẫu: vào điện, hoa, premium, đông người; dừng/xóa
 - [x] Nhân vật/quà mô phỏng gắn nhãn MẪU / MÔ PHỎNG trên overlay
 - [x] Người mẫu không thể chiếm chỗ làm người thật bị đá khỏi phòng
 - [x] Mặc định chỉ offline; khi có kết nối LIVE muốn hiển thị demo phải bật tùy chọn rõ ràng
+- [x] Kiểm tra cú pháp JavaScript giao diện admin, overlay và server sau nâng cấp
 - [ ] Duyệt chức năng admin bằng test trình duyệt thật và kiểm tra UX điện thoại
 - [ ] Kiểm thử luồng 100 người và hàng đợi 21 gift end-to-end
 
 ## F. QA / nghiệm thu
 - [x] Kiểm tra tĩnh cú pháp JavaScript server/control/overlay/simulator
+- [x] Bổ sung kiểm thử đơn vị cho lựa chọn quà ảo, chống gửi cho user thật, ngưỡng và giới hạn tần suất
 - [ ] Chạy đầy đủ npm test trên branch đã pull và kiểm chứng GIF/asset
 - [ ] Quay 30–45 giây từ renderer thật (OBS), không dùng storyboard AI thay thế
 - [ ] UAT, phân tích FPS/latency/độ ổn định và sửa P0/P1
