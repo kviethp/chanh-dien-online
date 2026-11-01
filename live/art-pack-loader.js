@@ -52,7 +52,9 @@
   function drawActor(ctx,v,k,pose,now=performance.now()){
     const norm={granny:'elder',nun:'novice'}[v.skin]||v.skin||'woman';
     const sprite=asset.skin[norm];if(!ready(sprite))return false;
-    const isSit=v.state==='sit',frame=isSit?(pose?.frame===4?4:7):[1,2,3][Math.floor(now/220)%3];
+    const isSit=v.state==='sit';
+    const frame=isSit?(pose?.frame===4?4:7):v.state==='sitting'?
+      Math.min(7,Math.max(4,Number(v.frame)||4)):[1,2,3][Math.floor(now/220)%3];
     const h=315*k,w=h*240/340;
     // Caller has already translated to seat/world location.
     ctx.save();
