@@ -89,6 +89,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
 
 <script src="/live/premium-visuals.js"></script>
 <script src="/live/stage-scene.js"></script>
+<script src="/live/gift-cinematics.js"></script>
 <script>
 /* ======================= stage fit ======================= */
 const stage = document.getElementById('stage');
@@ -103,6 +104,8 @@ const IMG = { hall:'/assets/hall.jpg', monk:'/assets/c_monk.png', nun:'/assets/c
 for (const [k,src] of Object.entries(IMG)){ const im=new Image(); im.src=src; A[k]=im; }
 const ANIM = { man:{fw:212,fh:300,seatH:210}, woman:{fw:212,fh:300,seatH:220}, granny:{fw:195,fh:300,seatH:222} };
 const premium = window.PremiumVisuals;
+const cinematicFX=window.GiftCinematics;
+const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const stageScene=window.StageScene;
 const entrySkin = skin => hasAnim(skin) ? skin : (skin==='nun'||skin==='child' ? 'woman' : 'man');
 const hasAnim = k => ANIM[k] && A['anim_'+k]?.naturalWidth > 0;
@@ -245,7 +248,7 @@ function connect(){
       case 'leave': removeVisitor(m.id); updateCount(); renderMerit(); break;
       case 'skin': { const v=visitors.get(m.id); if(v){ v.skin=m.skin; v.glow=.8; if(v.state!=='sit'){ v.state='sit'; v.frame=7; } } } break;
       case 'chat': { const v=visitors.get(m.id); if(v){ v.bubble={text:m.text, until:performance.now()+6000}; v.bow=.6; } } break;
-      case 'gift': { const v=visitors.get(m.id); if(v){ if(m.demo)v.demoCoins=m.total; else v.coins=m.total; if(m.reward) v.reward=m.reward; giftFx(v,m.tier,m.event); premium.giftReceived(v,m.event); } renderMerit(); showGift(m); } break;
+      case 'gift': { const v=visitors.get(m.id); if(v){ if(m.demo)v.demoCoins=m.total; else v.coins=m.total; if(m.reward) v.reward=m.reward; giftFx(v,m.tier,m.event); premium.giftReceived(v,m.event);cinematicFX.trigger(v,m.event); } renderMerit(); showGift(m); } break;
       case 'like': { const v=visitors.get(m.id); if(v) hearts(v,m.n); } break;
       case 'tts': queueTTS(m.url); break;
       case 'chant': showChant(m.text); bell(); break;
@@ -362,6 +365,7 @@ function frame(now){
     if (p.heart){ ctx.fillStyle='#ff5a7a'; ctx.font='34px serif'; ctx.textAlign='center'; ctx.fillText('♥',0,0); } else { ctx.rotate(Math.sin(p.t*2+i)*.6); sprite(A.petal,0,0,p.s,.5); }
     ctx.restore(); }
   premium.drawEffects(ctx,dt);
+  cinematicFX.render(ctx,now,reducedMotion);
   stageScene.drawForeground(ctx);
 }
 /* lantern ambience: every few minutes the hall lanterns brighten for a moment */
