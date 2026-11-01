@@ -21,6 +21,15 @@ try{
  for(const [name,p] of [['admin',ui],['overlay',live]])p.on('pageerror',e=>errs.push(name+': '+e.message));
  await live.goto(root+'/live/overlay.html');await ui.goto(root+'/live/control.html');
  await until(()=>ui.locator('#srv').innerText().then(t=>t.includes('đang chạy')),'control connected');
+ // V3 art pack optional locally: validate scene selection while legacy art remains usable.
+ if(!(await live.evaluate(()=>!!window.V3Art)))throw Error('V3Art runtime missing');
+ await ui.locator('#scene').selectOption('garden');
+ await until(()=>live.evaluate(()=>window.V3Art.scene()==='garden'),'garden scene setting propagation');
+ await ui.locator('#scene').selectOption('lantern_lake');
+ await until(()=>live.evaluate(()=>window.V3Art.scene()==='lantern_lake'),'lake scene setting propagation');
+ await ui.locator('#scene').selectOption('hall');
+ await until(()=>live.evaluate(()=>window.V3Art.scene()==='hall'),'return to hall');
+
 
  // The operator unlocks sound before broadcasting. Do not screenshot the setup button.
  const assetHealth=await live.evaluate(async()=>{
