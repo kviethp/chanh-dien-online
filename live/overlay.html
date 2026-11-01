@@ -90,6 +90,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:var(-
 <script src="/live/premium-visuals.js"></script>
 <script src="/live/stage-scene.js"></script>
 <script src="/live/gift-cinematics.js"></script>
+<script src="/live/art-pack-loader.js"></script>
 <script>
 /* ======================= stage fit ======================= */
 const stage = document.getElementById('stage');
@@ -107,6 +108,7 @@ const premium = window.PremiumVisuals;
 const cinematicFX=window.GiftCinematics;
 const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const stageScene=window.StageScene;
+const v3Art=window.V3Art;
 const entrySkin = skin => hasAnim(skin) ? skin : (skin==='nun'||skin==='child' ? 'woman' : 'man');
 const hasAnim = k => ANIM[k] && A['anim_'+k]?.naturalWidth > 0;
 const avatars = new Map();
@@ -145,6 +147,7 @@ function removeVisitor(id){ visitors.delete(id); reseat(); }
 function deliverGift(v,m){
   giftFx(v,m.tier,m.event);
   premium.giftReceived(v,m.event,undefined,visitors.size);
+  v3Art.onGift(v,m.event);
   cinematicFX.trigger(v,m.event);
   showGift(m);
 }
@@ -249,7 +252,7 @@ function hearts(v,n){ for (let i=0;i<Math.min(6,n);i++) petals.push({x:v.x+(Math
 /* ======================= server link ======================= */
 let ws=null;
 function connect(){
-  ws = new WebSocket(`ws://${location.host}/ws?role=overlay`);
+  ws = new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws?role=overlay`);
   const st=document.getElementById('conn');
   ws.onopen=()=>{ st.textContent=''; };
   ws.onclose=()=>{ st.textContent='mất kết nối server… đang thử lại'; setTimeout(connect,2000); };
@@ -277,6 +280,7 @@ function connect(){
 function applySettings(){
   document.getElementById('title').textContent=settings.title||'Chánh Điện Tịnh Tâm';
   document.getElementById('subtitle').textContent=settings.subtitle||'Nam Mô A Di Đà Phật';
+  v3Art.choose(settings.scene||'hall');
   duck(false); scheduleMo();
 }
 connect();
@@ -337,7 +341,7 @@ let last=performance.now();
 function frame(now){
   requestAnimationFrame(frame); const dt=Math.min((now-last)/1000,.05); last=now; const t=now/1000;
   ctx.clearRect(0,0,1080,1920);
-  stageScene.drawBackground(ctx,A.hall,seats);
+  v3Art.drawBackground(ctx,cap,seats,()=>stageScene.drawBackground(ctx,A.hall,seats),now);
   // light: halo pulse behind the Buddha, candle flicker, incense smoke
   haloPulse=Math.max(0,haloPulse-dt*.4);
   ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=.2+.08*Math.sin(t*1.2)+haloPulse*.5; sprite(A.halo,540,560,2.7+haloPulse*.35,.5); ctx.restore();
@@ -379,7 +383,9 @@ function frame(now){
     ctx.translate(v.x,v.y+(pose?.lift||0)*ws);
     if(bowK>0)ctx.transform(1,0,0,1-bowK,0,0);
     let topY;
-    if(useMotionSprite){
+    if(v3Art.drawActor(ctx,v,ws,pose,now)){
+      topY=315*ws;
+    } else if(useMotionSprite){
       const a=ANIM[enteringSkin],k=ws*1.05*260/a.seatH;
       const currentFrame=pose?.frame ?? v.frame;
       if(v.flip)ctx.scale(-1,1);
@@ -417,6 +423,7 @@ function frame(now){
     ctx.restore(); }
   premium.drawEffects(ctx,dt,visitors.size);
   cinematicFX.render(ctx,now,reducedMotion||visitors.size>=80);
+  v3Art.drawGift(ctx,now,reducedMotion||visitors.size>=80);
   stageScene.drawForeground(ctx);
 }
 /* lantern ambience: every few minutes the hall lanterns brighten for a moment */

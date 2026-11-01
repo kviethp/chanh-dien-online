@@ -31,6 +31,7 @@ const settings = {
   rate: -20,                         // %
   music: true, mo: true, moBpm: 52,
   autoChant: true, chantEveryMin: 3,
+  scene: 'hall',
   seatMode: 'auto',                  // auto | 24 | 36 | 64 | 100
   joinOnEnter: true,                 // seat public MEMBER join events when TikTok emits them
   gifts: { readAll: true, minDiamonds: 1 },
@@ -329,6 +330,7 @@ const SETTING_RULES = {
   voice: v => ['vi-VN-NamMinhNeural', 'vi-VN-HoaiMyNeural'].includes(v) ? v : settings.voice,
   pitch: v => clamp(v, -50, 50), rate: v => clamp(v, -50, 50), moBpm: v => clamp(v, 20, 120), chantEveryMin: v => clamp(v, 1, 60),
   music: Boolean, mo: Boolean, autoChant: Boolean, joinOnEnter: Boolean,
+  scene: v => ['hall','garden','lantern_lake'].includes(String(v)) ? String(v) : 'hall',
   seatMode: v => ['auto', '24', '36', '64', '100'].includes(String(v)) ? String(v) : 'auto',
 };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(+v || 0)));

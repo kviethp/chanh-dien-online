@@ -158,6 +158,14 @@ button.red{background:var(--red);border-color:#b84a33}
     </div>
     <div class="row"><button id="btnBell">🔔 Thỉnh chuông</button><button id="btnMo">Gõ mõ</button></div>
     <h2>Cảnh</h2>
+    <label>Bối cảnh cinematic
+      <select id="scene">
+        <option value="hall">Chánh điện – nghi lễ chính</option>
+        <option value="garden">Vườn sen – tĩnh tâm</option>
+        <option value="lantern_lake">Sân hoa đăng – hồi hướng</option>
+      </select>
+    </label>
+    <p class="hint">Các cảnh GPT art chất lượng cao cần cài gói assets/art_v3. Nếu chưa cài, renderer giữ bối cảnh cũ an toàn.</p>
     <label>Tên thiền đường<input id="title" value="Chánh Điện Tịnh Tâm"></label>
     <label>Dòng phụ<input id="subtitle" value="Nam Mô A Di Đà Phật"></label>
     <div class="row">
@@ -178,7 +186,7 @@ const $ = id => document.getElementById(id);
 let ws = null;
 const send = (cmd, extra={}) => ws?.readyState===1 && ws.send(JSON.stringify({ t:'ctl', cmd, ...extra }));
 function logLine(s){ const el=$('log'); el.textContent += s + '\n'; el.scrollTop = el.scrollHeight; }
-const SETTING_IDS = ['voice','pitch','rate','music','mo','autoChant','moBpm','chantEveryMin','title','subtitle','seatMode','joinOnEnter'];
+const SETTING_IDS = ['voice','pitch','rate','music','mo','autoChant','moBpm','chantEveryMin','title','subtitle','scene','seatMode','joinOnEnter'];
 function fillSettings(s){ for (const k of SETTING_IDS){ const el=$(k); if (!el || s[k]===undefined) continue; if (el.type==='checkbox') el.checked=!!s[k]; else el.value=s[k]; } }
 function readSettings(){ const o={}; for (const k of SETTING_IDS){ const el=$(k); o[k] = el.type==='checkbox' ? el.checked : el.type==='number' ? +el.value : el.value; } return o; }
 function showAutoGiftState(st){
@@ -212,7 +220,7 @@ function setTT(st){
   el.textContent = st.status==='connected' ? `TikTok: @${st.uniqueId} ✓` : st.status==='connecting' ? `TikTok: đang kết nối @${st.uniqueId}…` : st.status==='error' ? 'TikTok: lỗi kết nối' : 'TikTok: chưa kết nối';
 }
 function connect(){
-  ws = new WebSocket(`ws://${location.host}/ws?role=control`);
+  ws = new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws?role=control`);
   ws.onopen = () => { $('srv').textContent='Server: đang chạy'; $('srv').className='chip ok'; };
   ws.onclose = () => { $('srv').textContent='Server: mất kết nối'; $('srv').className='chip bad'; setTimeout(connect, 2000); };
   ws.onmessage = e => {

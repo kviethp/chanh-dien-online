@@ -6,7 +6,8 @@
   "description": "TikTok LIVE overlay server for Chánh Điện Tịnh Tâm",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test *.test.mjs"
+    "test": "node --test *.test.mjs",
+    "test:art": "node verify-art-pack.mjs --required"
   },
   "dependencies": {
     "msedge-tts": "2.1.1",
