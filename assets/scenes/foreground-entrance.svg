@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920"><defs>
+<linearGradient id="lacquer"><stop stop-color="#160905"/><stop offset=".14" stop-color="#6D3A20"/><stop offset=".24" stop-color="#C18642"/><stop offset=".40" stop-color="#462113"/><stop offset=".7" stop-color="#241008"/><stop offset="1" stop-color="#070402"/></linearGradient>
+<linearGradient id="gold"><stop stop-color="#703B16"/><stop offset=".38" stop-color="#F2D087"/><stop offset=".62" stop-color="#FFF0B9"/><stop offset="1" stop-color="#6D401B"/></linearGradient>
+<radialGradient id="entrance"><stop stop-color="#FFF5D0" stop-opacity=".21"/><stop offset=".5" stop-color="#F6BD68" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs>
+<ellipse cx="540" cy="1830" rx="540" ry="230" fill="url(#entrance)"/>
+<g opacity=".91">
+<path d="M0 1280 L55 1280 Q91 1300 91 1360 L89 1920 L0 1920 Z" fill="url(#lacquer)" stroke="url(#gold)" stroke-width="7"/>
+<path d="M1080 1280 L1025 1280 Q989 1300 989 1360 L991 1920 L1080 1920 Z" fill="url(#lacquer)" stroke="url(#gold)" stroke-width="7"/>
+<path d="M55 1350 L55 1870 M1025 1350 L1025 1870" fill="none" stroke="url(#gold)" stroke-width="5" opacity=".74"/>
+</g>
+<g stroke="url(#gold)" fill="none" opacity=".65" stroke-width="3">
+<path d="M18 1400 Q56 1378 72 1400 Q56 1422 18 1400 M1062 1400 Q1024 1378 1008 1400 Q1024 1422 1062 1400"/>
+<path d="M18 1475 Q56 1453 72 1475 Q56 1497 18 1475 M1062 1475 Q1024 1453 1008 1475 Q1024 1497 1062 1475"/>
+<path d="M18 1550 Q56 1528 72 1550 Q56 1572 18 1550 M1062 1550 Q1024 1528 1008 1550 Q1024 1572 1062 1550"/>
+<path d="M18 1625 Q56 1603 72 1625 Q56 1647 18 1625 M1062 1625 Q1024 1603 1008 1625 Q1024 1647 1062 1625"/>
+<path d="M18 1700 Q56 1678 72 1700 Q56 1722 18 1700 M1062 1700 Q1024 1678 1008 1700 Q1024 1722 1062 1700"/>
+<path d="M18 1775 Q56 1753 72 1775 Q56 1797 18 1775 M1062 1775 Q1024 1753 1008 1775 Q1024 1797 1062 1775"/>
+<path d="M18 1850 Q56 1828 72 1850 Q56 1872 18 1850 M1062 1850 Q1024 1828 1008 1850 Q1024 1872 1062 1850"/>
+</g><ellipse cx="70" cy="1680" rx="15" ry="25" fill="url(#gold)"/><ellipse cx="1010" cy="1680" rx="15" ry="25" fill="url(#gold)"/></svg>
