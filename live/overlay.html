@@ -118,6 +118,7 @@ function layout(c){cap=c;seats=stageScene.layout(c);reseat();}
 const visitors = new Map();
 let demoOnAir=false;  // id -> visitor
 const cinematicQ=[]; let cinematicUntil=0;
+let resumeChantAfterGift=false;
 const MAX_CINEMATIC_QUEUE=8;
 let order = [];               // ids in seating order
 function reseat(){
@@ -151,7 +152,7 @@ let giftHide=null;
 function showGift(m){
   const now=Date.now();
   if(now < cinematicUntil){
-    // Never allow a low-cost streak to cover an active premium dedication.
+    // Small gifts retain their individual visual effects; do not replace current cinematic.
     if((m.event?.level||0)<2)return;
     const repeat=cinematicQ.find(e=>e.id===m.id && e.giftName===m.giftName);
     if(repeat){repeat.count+=m.count;repeat.coins+=m.coins;repeat.total=m.total;return;}
@@ -165,8 +166,9 @@ function showGift(m){
   document.getElementById('giftPrestige').textContent=m.event?.title||'';
   document.getElementById('giftWhat').textContent = `${m.demo?'QUÀ ẢO · ':''}thành tâm dâng ${m.giftName}${m.count>1?' ×'+m.count:''} · điểm tri ân ${m.total}`;
   document.getElementById('giftPray').textContent = '“' + m.prayer + '”';
+  if(document.getElementById('chant').classList.contains('show'))resumeChantAfterGift=true;
   document.getElementById('chant').classList.remove('show');
-  const el=document.getElementById('gift'); el.classList.add('show'); clearTimeout(giftHide); giftHide=setTimeout(()=>{el.classList.remove('show');cinematicUntil=0;if(cinematicQ.length) showGift(cinematicQ.shift());},duration);
+  const el=document.getElementById('gift'); el.classList.add('show'); clearTimeout(giftHide); giftHide=setTimeout(()=>{el.classList.remove('show');cinematicUntil=0;if(cinematicQ.length)showGift(cinematicQ.shift());else if(resumeChantAfterGift){resumeChantAfterGift=false;document.getElementById('chant').classList.add('show');}},duration);
 }
 let chantHide=null;
 function showChant(text){ document.getElementById('chantText').textContent=text; const el=document.getElementById('chant'); el.classList.add('show'); clearTimeout(chantHide); chantHide=setTimeout(()=>el.classList.remove('show'), 14000); }
