@@ -1,7 +1,7 @@
 # CHECKLIST – Chánh Điện Online 3.0
 
 > Tiến độ được đánh dấu khi code tương ứng đã được cập nhật và kiểm tra cơ bản. **Không đánh dấu hoàn thành mỹ thuật/production nếu chưa nghiệm thu trên OBS.** 
-> Phát triển trên nhánh `feature/v3-cinematic-stage-milestone` (PR riêng dựa trên nhánh admin V3), PR review trước khi merge vào `main`.
+> Phát triển trên nhánh `feature/v3-hardening-and-qa` (PR riêng dựa trên nhánh sân khấu V3), PR review trước khi merge vào `main`.
 
 ## A. Kiểm tra hiện trạng / chuẩn hoá
 - [x] Kiểm tra PR #1, nhánh 2.0, cấu trúc assets/overlay/control/server
@@ -18,7 +18,8 @@
 - [x] Kiểm tra tính duy nhất tọa độ và lối đi bằng 17 phép thử thực thi độc lập
 - [ ] Visual QA đường đi nhân vật, va chạm và seat map trên browser/OBS
 - [ ] Hai cảnh phụ: Vườn sen / Hoa đăng, có chuyển cảnh cinematic
-- [ ] Visual snapshot QA ở 4 mật độ ghế + 2 kích thước thiết bị
+- [x] Tích hợp bước tự chụp overlay 24/36/64/100 trong bài test browser (chưa chạy)
+- [ ] Xem và duyệt kết quả visual snapshot ở 4 mật độ ghế + 2 kích thước thiết bị
 
 ## C. Nhân vật và chuyển động
 - [ ] Rig/atlas đồng bộ 7 skin; artist-authored outfits có ít nhất 8 trạng thái
@@ -32,7 +33,8 @@
 - [x] Danh mục ánh xạ 21 gift + tier 500 / 1000 / 3000 / 10000
 - [x] Vòng sáng, lời tri ân, vật phẩm và hàng đợi hiệu ứng cấp cao
 - [ ] 21 cinematic được dựng theo phong cách concept, có đủ intro/main/outro
-- [ ] Hiệu ứng không cắt ngang kinh/tụng, giảm motion và âm lượng phù hợp
+- [x] Sửa luồng banner: khôi phục nội dung tụng sau khi hàng đợi quà VIP hoàn tất
+- [ ] Kiểm thử thực tế TTS không chen câu kinh, giảm motion và âm lượng phù hợp
 - [ ] Xác minh giftId và giá trị quà với phiên TikTok thật
 
 ## E. Admin — studio mô phỏng minh bạch
@@ -46,14 +48,16 @@
 - [x] Người mẫu không thể chiếm chỗ làm người thật bị đá khỏi phòng
 - [x] Mặc định chỉ offline; khi có kết nối LIVE muốn hiển thị demo phải bật tùy chọn rõ ràng
 - [x] Kiểm tra cú pháp JavaScript giao diện admin, overlay và server sau nâng cấp
-- [ ] Duyệt chức năng admin bằng test trình duyệt thật và kiểm tra UX điện thoại
+- [x] Viết bài test Chromium mô phỏng Admin/overlay và 4 mật độ ghế tại `live/browser-smoke.mjs`
+- [ ] Chạy đạt bài test Chromium trong CI; duyệt UX điện thoại qua screenshot
 - [ ] Kiểm thử luồng 100 người và hàng đợi 21 gift end-to-end
 
 ## F. QA / nghiệm thu
 - [x] Kiểm tra tĩnh cú pháp JavaScript server/control/overlay/simulator
 - [x] Bổ sung kiểm thử đơn vị cho lựa chọn quà ảo, chống gửi cho user thật, ngưỡng và giới hạn tần suất
 - [x] Thêm `live/stage-geometry.test.mjs` cho 4 mật độ, đường đi và sự phù hợp renderer
-- [ ] Chạy đầy đủ npm test trên branch đã pull và kiểm chứng GIF/asset
+- [x] Tạo GitHub Actions chạy `npm ci`, `npm test`, Chromium và xuất ảnh QA
+- [ ] CI báo PASS cho `npm test` + Chromium và xác minh asset/ảnh chụp (chưa có kết quả)
 - [ ] Quay 30–45 giây từ renderer thật (OBS), không dùng storyboard AI thay thế
 - [ ] UAT, phân tích FPS/latency/độ ổn định và sửa P0/P1
 - [ ] Ready for Review → merge vào main sau khi chấp thuận
