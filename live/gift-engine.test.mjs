@@ -34,3 +34,24 @@ test('seat capacity respects fixed limits and auto expands',()=>{
   assert.equal(getSeatCapacity('auto',25),36);
   assert.equal(getSeatCapacity('auto',65),100);
 });
+
+test('premium SVGs and runtime animation file are bundled', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { fileURLToPath } = await import('node:url');
+  const { dirname, resolve } = await import('node:path');
+  const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+  for(const filename of [
+    'aura_high','aura_vip','aura_elite','aura_legend',
+    'prop_beads','prop_lantern','prop_lotus_throne','prop_grand_lotus',
+    'prop_incense','petal_pink','costume_high','costume_vip','costume_elite','costume_legend'
+  ]) {
+    const svg=readFileSync(resolve(root,'assets','premium',filename+'.svg'),'utf8');
+    assert.match(svg,/<svg\s/,'asset '+filename);
+    assert.match(svg,/<\/svg>/,'closing tag '+filename);
+  }
+  const overlay=readFileSync(resolve(root,'live','overlay.html'),'utf8');
+  const visuals=readFileSync(resolve(root,'live','premium-visuals.js'),'utf8');
+  assert.match(overlay,/premium-visuals\.js/);
+  assert.match(visuals,/costumeSprite/);
+  assert.match(visuals,/giftReceived/);
+});
