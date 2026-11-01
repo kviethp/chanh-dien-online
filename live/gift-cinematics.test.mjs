@@ -15,6 +15,8 @@ test('every catalogued gift has a distinct keyed VFX with bounded active events'
   fx.trigger({x:550,y:1500,seat:{scale:.4}},evt,1000);
  }
  assert.ok(fx.activeCount()<=fx.MAX_RUNNING);
+ assert.ok(fx.queuedCount()<=fx.MAX_PENDING);
+ assert.equal(fx.MAX_RUNNING,1,'cinematics must be serialized to avoid stacking full-screen FX');
 });
 test('gift renderer supports canvas draw calls and reduced motion fallback',()=>{
  const source=readFileSync(new URL('./gift-cinematics.js',import.meta.url),'utf8');
