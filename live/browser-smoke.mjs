@@ -80,7 +80,8 @@ try{
  // A high tier event must update the mock actor while retaining the public mock label.
  await ui.locator('#demoGift').selectOption('Interstellar');await ui.locator('#demoSendGift').click();
  await until(()=>ui.locator('#autoGiftHistory').innerText().then(t=>t.includes('Interstellar')),'legend mock gift');
- await live.waitForTimeout(1000);
+ await until(()=>live.locator('#giftWhat').innerText().then(t=>t.includes('Interstellar')),'legend cinematic visible',24000);
+ await live.waitForTimeout(500);
  await live.screenshot({path:resolve(out,'premium-gift.png')});
 
  // Stress case: 100 simulated occupants and five premium gifts in a burst.
@@ -90,7 +91,7 @@ try{
  await ui.locator('#seatMode').selectOption('100');
  await ui.locator('[data-fill="100"]').click();
  await until(()=>ui.locator('#cnt').innerText().then(t=>t.includes('100 mẫu')),'100-player stress setup',22000);
- await live.waitForTimeout(2500);
+ await live.waitForTimeout(5000);
  await ui.locator('#demoGift').selectOption('Galaxy');
  for(let i=0;i<5;i++) {
    await ui.locator('#demoTarget').selectOption({index:i});
